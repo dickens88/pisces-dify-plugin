@@ -1,0 +1,231 @@
+identity:
+  name: add_ioc
+  author: charles
+  label:
+    en_US: Add IOC
+    zh_Hans: 添加 IOC
+description:
+  human:
+    en_US: Add a new IOC (Indicator of Compromise) record to a security incident.
+    zh_Hans: 向指定安全事件中添加一条 IOC（失陷指标）记录。
+  llm: Add a new IOC record to a security incident. Requires incident_id, object_name (the actual IOC value like an IP or domain), object_type, and object_subtype. Other fields are optional.
+parameters:
+  - name: incident_id
+    type: string
+    required: true
+    label:
+      en_US: Incident ID
+      zh_Hans: 事件 ID
+    human_description:
+      en_US: The ID of the security incident to add the IOC to.
+      zh_Hans: 要添加 IOC 的安全事件 ID。
+    llm_description: The unique identifier of the security incident.
+    form: llm
+
+  - name: object_name
+    type: string
+    required: true
+    label:
+      en_US: IOC Value
+      zh_Hans: IOC 值
+    human_description:
+      en_US: The actual IOC value, e.g. an IP address, domain name, username, or hostname.
+      zh_Hans: IOC 的具体内容，如 IP 地址、域名、用户名或主机名。
+    llm_description: "The IOC value itself, e.g. '192.168.1.1', 'evil.example.com', 'administrator'."
+    form: llm
+
+  - name: object_type
+    type: select
+    required: true
+    label:
+      en_US: IOC Type
+      zh_Hans: IOC 类型
+    human_description:
+      en_US: Whether this IOC represents an attack source or a compromised asset.
+      zh_Hans: 该 IOC 是攻击源还是受害资产。
+    llm_description: "attack_source = the attacker side; compromised_asset = the victim/internal asset side."
+    form: llm
+    options:
+      - value: attack_source
+        label:
+          en_US: Attack Source (攻击源)
+          zh_Hans: 攻击源
+      - value: compromised_asset
+        label:
+          en_US: Compromised Asset (受害资产)
+          zh_Hans: 受害资产
+
+  - name: object_subtype
+    type: select
+    required: true
+    label:
+      en_US: IOC Subtype
+      zh_Hans: IOC 子类型
+    human_description:
+      en_US: The specific category of the IOC value.
+      zh_Hans: IOC 值的具体分类。
+    llm_description: "The subtype of the IOC: ip, hostname, hostip, domainname, domainid, username, userid."
+    form: llm
+    options:
+      - value: ip
+        label:
+          en_US: IP Address
+          zh_Hans: IP 地址
+      - value: hostname
+        label:
+          en_US: Hostname
+          zh_Hans: 主机名
+      - value: hostip
+        label:
+          en_US: Host IP
+          zh_Hans: 主机 IP
+      - value: domainname
+        label:
+          en_US: Domain Name
+          zh_Hans: 域名
+      - value: domainid
+        label:
+          en_US: Domain ID
+          zh_Hans: 域 ID
+      - value: username
+        label:
+          en_US: Username
+          zh_Hans: 用户名
+      - value: userid
+        label:
+          en_US: User ID
+          zh_Hans: 用户 ID
+
+  - name: object_label
+    type: string
+    required: false
+    label:
+      en_US: Label
+      zh_Hans: 标签
+    human_description:
+      en_US: Optional short label or tag for this IOC.
+      zh_Hans: IOC 的可选标签或备注。
+    llm_description: A short descriptive label for the IOC, e.g. "C2 server", "内网跳板机".
+    form: llm
+
+  - name: object_detail
+    type: string
+    required: false
+    label:
+      en_US: Detail
+      zh_Hans: 详细描述
+    human_description:
+      en_US: Optional detailed description or notes about this IOC.
+      zh_Hans: IOC 的可选详细描述或备注信息。
+    llm_description: Additional details or analysis notes about this IOC.
+    form: llm
+
+  - name: source
+    type: select
+    required: false
+    label:
+      en_US: Source
+      zh_Hans: 来源
+    human_description:
+      en_US: How this IOC was identified. Defaults to "人工" (manual).
+      zh_Hans: 该 IOC 的来源方式，默认为「人工」。
+    llm_description: "Source of the IOC: 告警 (from alert), 人工 (manual), 回溯 (retrospective analysis). Defaults to 人工."
+    form: form
+    default: 人工
+    options:
+      - value: 人工
+        label:
+          en_US: "Manual (人工)"
+          zh_Hans: 人工
+      - value: 告警
+        label:
+          en_US: "From Alert (告警)"
+          zh_Hans: 告警
+      - value: 回溯
+        label:
+          en_US: "Retrospective (回溯)"
+          zh_Hans: 回溯
+
+  - name: handle_status
+    type: select
+    required: false
+    label:
+      en_US: Handle Status
+      zh_Hans: 处置状态
+    human_description:
+      en_US: The current handling status of this IOC. Defaults to "未处置".
+      zh_Hans: 该 IOC 的当前处置状态，默认为「未处置」。
+    llm_description: "Handling status: 未处置 (untreated), 警告 (warned), WAF拦截 (WAF blocked), CBC冻结 (CBC frozen), 已取证 (forensicated)."
+    form: form
+    default: 未处置
+    options:
+      - value: 未处置
+        label:
+          en_US: "Untreated (未处置)"
+          zh_Hans: 未处置
+      - value: 警告
+        label:
+          en_US: "Warned (警告)"
+          zh_Hans: 警告
+      - value: WAF拦截
+        label:
+          en_US: "WAF Blocked (WAF拦截)"
+          zh_Hans: WAF拦截
+      - value: CBC冻结
+        label:
+          en_US: "CBC Frozen (CBC冻结)"
+          zh_Hans: CBC冻结
+      - value: 已取证
+        label:
+          en_US: "Forensicated (已取证)"
+          zh_Hans: 已取证
+
+  - name: status
+    type: select
+    required: false
+    label:
+      en_US: Confirmation Status
+      zh_Hans: 确认状态
+    human_description:
+      en_US: The confirmation status of this IOC. Defaults to "待确认".
+      zh_Hans: IOC 的确认状态，默认为「待确认」。
+    llm_description: "Confirmation status: 待确认 (pending), 攻击者 (attacker), 非攻击者 (not attacker), 受害者 (victim), 非受害者 (not victim)."
+    form: form
+    default: 待确认
+    options:
+      - value: 待确认
+        label:
+          en_US: "Pending (待确认)"
+          zh_Hans: 待确认
+      - value: 攻击者
+        label:
+          en_US: "Attacker (攻击者)"
+          zh_Hans: 攻击者
+      - value: 非攻击者
+        label:
+          en_US: "Not Attacker (非攻击者)"
+          zh_Hans: 非攻击者
+      - value: 受害者
+        label:
+          en_US: "Victim (受害者)"
+          zh_Hans: 受害者
+      - value: 非受害者
+        label:
+          en_US: "Not Victim (非受害者)"
+          zh_Hans: 非受害者
+
+  - name: alert_id
+    type: string
+    required: false
+    label:
+      en_US: Alert ID
+      zh_Hans: 告警 ID
+    human_description:
+      en_US: Associate this IOC with a specific alert ID. If omitted, the server uses the incident's first alert automatically.
+      zh_Hans: 将此 IOC 关联到指定告警 ID。留空则服务端自动使用该事件的第一个告警。
+    llm_description: Optional alert ID to associate the IOC with. Leave empty to use the incident's default alert.
+    form: llm
+
+extra:
+  python:
+    source: tools/add_ioc.py

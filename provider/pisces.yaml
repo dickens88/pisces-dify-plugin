@@ -1,0 +1,49 @@
+identity:
+  author: charles
+  name: pisces
+  label:
+    en_US: Pisces
+    zh_Hans: 双鱼座
+  description:
+    en_US: Pisces security incident response platform — API tools.
+    zh_Hans: 双鱼座安全事件响应平台 — API工具集。
+  icon: icon.svg
+credentials_for_provider:
+  base_url:
+    type: text-input
+    required: true
+    label:
+      en_US: API Base URL
+      zh_Hans: API 地址
+    placeholder:
+      en_US: "http://192.168.1.125:8080"
+      zh_Hans: "http://192.168.1.125:8080"
+    help:
+      en_US: The base URL of your Pisces API server, without trailing slash.
+      zh_Hans: 双鱼座 API 服务地址，末尾不带斜杠。
+  username:
+    type: text-input
+    required: true
+    label:
+      en_US: Username
+      zh_Hans: 用户名
+    help:
+      en_US: Your Pisces platform username.
+      zh_Hans: 双鱼座平台的登录用户名。
+  password:
+    type: secret-input
+    required: true
+    label:
+      en_US: Password
+      zh_Hans: 密码
+    help:
+      en_US: Your Pisces platform password. The plugin automatically obtains a fresh JWT token on each request.
+      zh_Hans: 双鱼座平台的登录密码。插件每次请求时自动获取新 Token，无需手动维护。
+tools:
+  - tools/query_iocs.yaml
+  - tools/add_ioc.yaml
+  - tools/create_deeptrace_task.yaml
+  - tools/stream_deeptrace_task.yaml
+extra:
+  python:
+    source: provider/pisces.py

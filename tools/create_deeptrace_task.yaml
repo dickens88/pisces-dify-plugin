@@ -1,0 +1,51 @@
+identity:
+  name: create_deeptrace_task
+  author: charles
+  label:
+    en_US: Create DeepTrace Task
+    zh_Hans: 创建深度溯源任务
+description:
+  human:
+    en_US: Create a DeepTrace session and start an analysis run. Returns the session_id for tracking.
+    zh_Hans: 创建深度溯源会话并启动分析任务，返回 session_id 用于追踪。
+  llm: Create a DeepTrace analysis session, send the initial question to start the agent run, and return the session_id. The session can then be monitored via the stream_deeptrace_task tool.
+parameters:
+  - name: title
+    type: string
+    required: false
+    label:
+      en_US: Session Title
+      zh_Hans: 会话标题
+    human_description:
+      en_US: A title for the DeepTrace session. Defaults to "New Session".
+      zh_Hans: 深度溯源会话的标题，默认为 "New Session"。
+    llm_description: Optional title for the session. If omitted, defaults to the question text (up to 100 chars).
+    form: llm
+
+  - name: question
+    type: string
+    required: true
+    label:
+      en_US: Question / Prompt
+      zh_Hans: 分析问题
+    human_description:
+      en_US: The initial question or analysis prompt to send to the DeepTrace agent.
+      zh_Hans: 发送给深度溯源 Agent 的初始问题或分析指令。
+    llm_description: The user question or analysis instruction that kicks off the DeepTrace agent run.
+    form: llm
+
+  - name: model
+    type: string
+    required: false
+    label:
+      en_US: Model Override
+      zh_Hans: 模型覆盖
+    human_description:
+      en_US: Override the default LLM model for this run (e.g. "gpt-4o", "claude-3.5-sonnet"). Leave empty to use the server default.
+      zh_Hans: 覆盖本次运行使用的 LLM 模型（如 "gpt-4o"），留空则使用服务端默认。
+    llm_description: Optional model name to override the server default for this run.
+    form: form
+
+extra:
+  python:
+    source: tools/create_deeptrace_task.py

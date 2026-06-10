@@ -1,0 +1,107 @@
+identity:
+  name: query_iocs
+  author: charles
+  label:
+    en_US: Query IOCs
+    zh_Hans: 查询 IOC 清单
+description:
+  human:
+    en_US: Query the list of IOC (Indicators of Compromise) records for a given incident.
+    zh_Hans: 查询指定安全事件（incident）下的 IOC（失陷指标）清单。
+  llm: Query IOC records for a security incident. Returns a paginated list of IOCs grouped by object_name and object_type, along with the total count.
+parameters:
+  - name: incident_id
+    type: string
+    required: true
+    label:
+      en_US: Incident ID
+      zh_Hans: 事件 ID
+    human_description:
+      en_US: The ID of the security incident to query IOCs for.
+      zh_Hans: 要查询 IOC 的安全事件 ID。
+    llm_description: The unique identifier of the security incident (e.g. "INC-2024-001").
+    form: llm
+
+  - name: object_type
+    type: select
+    required: false
+    label:
+      en_US: IOC Type
+      zh_Hans: IOC 类型
+    human_description:
+      en_US: Filter by IOC type. Leave empty to return all types.
+      zh_Hans: 按 IOC 类型过滤。留空则返回所有类型。
+    llm_description: "Filter IOCs by type: attack_source (攻击源) or compromised_asset (受害资产). Leave empty to return all."
+    form: form
+    options:
+      - value: attack_source
+        label:
+          en_US: Attack Source (攻击源)
+          zh_Hans: 攻击源
+      - value: compromised_asset
+        label:
+          en_US: Compromised Asset (受害资产)
+          zh_Hans: 受害资产
+
+  - name: status
+    type: select
+    required: false
+    label:
+      en_US: Status
+      zh_Hans: IOC 状态
+    human_description:
+      en_US: Filter by IOC confirmation status. Leave empty to return all statuses.
+      zh_Hans: 按 IOC 确认状态过滤。留空则返回所有状态。
+    llm_description: "Filter by IOC status: 待确认, 攻击者, 非攻击者, 受害者, 非受害者."
+    form: form
+    options:
+      - value: 待确认
+        label:
+          en_US: "Pending (待确认)"
+          zh_Hans: 待确认
+      - value: 攻击者
+        label:
+          en_US: "Attacker (攻击者)"
+          zh_Hans: 攻击者
+      - value: 非攻击者
+        label:
+          en_US: "Not Attacker (非攻击者)"
+          zh_Hans: 非攻击者
+      - value: 受害者
+        label:
+          en_US: "Victim (受害者)"
+          zh_Hans: 受害者
+      - value: 非受害者
+        label:
+          en_US: "Not Victim (非受害者)"
+          zh_Hans: 非受害者
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Maximum number of records to return (default 50).
+      zh_Hans: 每页返回的最大记录数（默认 50）。
+    llm_description: Number of IOC records per page, default 50.
+    form: form
+    default: 50
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Number of records to skip for pagination (default 0).
+      zh_Hans: 分页偏移量（默认 0）。
+    llm_description: Offset for pagination, default 0.
+    form: form
+    default: 0
+
+extra:
+  python:
+    source: tools/query_iocs.py
