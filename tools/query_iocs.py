@@ -2,8 +2,11 @@ from collections.abc import Generator
 from typing import Any
 
 import requests
+import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from provider.pisces import get_token
 
@@ -37,6 +40,7 @@ class QueryIocsTool(Tool):
                 params=params,
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=30,
+                verify=False,
             )
         except requests.exceptions.RequestException as e:
             yield self.create_text_message(f"请求失败: {e}")

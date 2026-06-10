@@ -2,8 +2,11 @@ from collections.abc import Generator
 from typing import Any
 
 import requests
+import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from provider.pisces import get_token
 
@@ -34,6 +37,7 @@ class CreateDeeptraceTaskTool(Tool):
                 json={"title": title or question[:100]},
                 headers=headers,
                 timeout=15,
+                verify=False,
             )
         except requests.exceptions.RequestException as e:
             yield self.create_text_message(f"创建会话失败: {e}")
@@ -63,6 +67,7 @@ class CreateDeeptraceTaskTool(Tool):
                 json=msg_body,
                 headers=headers,
                 timeout=15,
+                verify=False,
             )
         except requests.exceptions.RequestException as e:
             yield self.create_text_message(f"会话已创建（{session_id}）但启动任务失败: {e}")

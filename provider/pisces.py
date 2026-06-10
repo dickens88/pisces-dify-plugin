@@ -1,6 +1,9 @@
 import requests
+import urllib3
 from dify_plugin import ToolProvider
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def get_token(base_url: str, username: str, password: str) -> str:
@@ -10,33 +13,22 @@ def get_token(base_url: str, username: str, password: str) -> str:
             f"{base_url}/login",
             json={"username": username, "password": password},
             timeout=10,
+            verify=False,
         )
-    except requests.exceptions.ConnectionError:
-        raise ToolProviderCredentialValidationError(
-            f"Cannot connect to Pisces API at {base_url}. Please check the URL."
-        )
-    except requests.exceptions.Timeout:
-        raise ToolProviderCredentialValidationError(
-            f"Connection to {base_url} timed out."
-        )
+    except requests.exceptions.RequestException as e:
+        raise ToolProviderCredentialValidationError(str(e))
 
-    if resp.status_code == 401:
-        raise ToolProviderCredentialValidationError(
-            "Wrong credentials. Please check your username and password."
-        )
-    if resp.status_code == 402:
-        raise ToolProviderCredentialValidationError(
-            "This user does not have permission to access Pisces."
-        )
     if not resp.ok:
+        body = resp.json() if resp.content else {}
+        msg = body.get("error_message") or body.get("error") or resp.text
         raise ToolProviderCredentialValidationError(
-            f"Login failed ({resp.status_code}): {resp.text}"
+            f"Login failed ({resp.status_code}): {msg}"
         )
 
     token = resp.json().get("access_token")
     if not token:
         raise ToolProviderCredentialValidationError(
-            "Login succeeded but no access_token was returned."
+            f"Login succeeded but no access_token was returned. Response: {resp.text}"
         )
     return token
 
