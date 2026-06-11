@@ -31,17 +31,17 @@ parameters:
     human_description:
       en_US: Filter by IOC type. Leave empty to return all types.
       zh_Hans: 按 IOC 类型过滤。留空则返回所有类型。
-    llm_description: "Filter IOCs by type: attack_source (攻击源) or compromised_asset (受害资产). Leave empty to return all."
+    llm_description: "Filter IOCs by type: attack_source or compromised_asset. Leave empty to return all."
     form: form
     options:
       - value: attack_source
         label:
-          en_US: Attack Source (攻击源)
-          zh_Hans: 攻击源
+          en_US: attack_source
+          zh_Hans: attack_source
       - value: compromised_asset
         label:
-          en_US: Compromised Asset (受害资产)
-          zh_Hans: 受害资产
+          en_US: compromised_asset
+          zh_Hans: compromised_asset
 
   - name: status
     type: select
@@ -57,23 +57,23 @@ parameters:
     options:
       - value: 待确认
         label:
-          en_US: "Pending (待确认)"
+          en_US: 待确认
           zh_Hans: 待确认
       - value: 攻击者
         label:
-          en_US: "Attacker (攻击者)"
+          en_US: 攻击者
           zh_Hans: 攻击者
       - value: 非攻击者
         label:
-          en_US: "Not Attacker (非攻击者)"
+          en_US: 非攻击者
           zh_Hans: 非攻击者
       - value: 受害者
         label:
-          en_US: "Victim (受害者)"
+          en_US: 受害者
           zh_Hans: 受害者
       - value: 非受害者
         label:
-          en_US: "Not Victim (非受害者)"
+          en_US: 非受害者
           zh_Hans: 非受害者
 
   - name: limit
