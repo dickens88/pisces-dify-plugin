@@ -23,8 +23,8 @@ class QueryIocsTool(Tool):
             yield self.create_text_message(f"登录失败: {e}")
             return
 
-        incident_id = tool_parameters["incident_id"]
         params: dict[str, Any] = {
+            "incident_id": tool_parameters["incident_id"],
             "limit": int(tool_parameters.get("limit") or 50),
             "offset": int(tool_parameters.get("offset") or 0),
         }
@@ -33,7 +33,7 @@ class QueryIocsTool(Tool):
         if tool_parameters.get("status"):
             params["status"] = tool_parameters["status"]
 
-        url = f"{base_url}/incidents/{incident_id}/iocs"
+        url = f"{base_url}/incidents/iocs"
         try:
             resp = requests.get(
                 url,

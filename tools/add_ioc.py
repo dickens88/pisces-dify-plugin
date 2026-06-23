@@ -35,10 +35,11 @@ class AddIocTool(Tool):
             if value is not None and str(value).strip():
                 body[optional] = value
 
-        url = f"{base_url}/incidents/{incident_id}/iocs"
+        url = f"{base_url}/incidents/iocs"
         try:
             resp = requests.post(
                 url,
+                params={"incident_id": incident_id},
                 json=body,
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=30,
