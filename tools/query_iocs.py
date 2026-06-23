@@ -33,7 +33,7 @@ class QueryIocsTool(Tool):
         if tool_parameters.get("status"):
             params["status"] = tool_parameters["status"]
 
-        url = f"{base_url}/incidents/iocs"
+        url = f"{base_url}/iocs"
         try:
             resp = requests.get(
                 url,

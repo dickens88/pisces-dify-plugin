@@ -35,7 +35,7 @@ class AddIocTool(Tool):
             if value is not None and str(value).strip():
                 body[optional] = value
 
-        url = f"{base_url}/incidents/iocs"
+        url = f"{base_url}/iocs"
         try:
             resp = requests.post(
                 url,
