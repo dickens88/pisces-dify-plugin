@@ -1,4 +1,4 @@
-version: 0.0.2
+version: 0.0.3
 type: plugin
 author: charles
 name: pisces
@@ -7,7 +7,7 @@ label:
   en_US: Pisces
   zh_Hans: 双鱼座
 description:
-  en_US: Pisces security incident response platform API toolkits.
+  en_US: Pisces SIEM platform API toolkits.
   zh_Hans: 双鱼座(Pisces)SIEM平台的API 工具集。
 icon: icon.svg
 resource:

@@ -1,0 +1,67 @@
+identity:
+  name: query_review_queue
+  author: charles
+  label:
+    en_US: Query Alert Review Queue
+    zh_Hans: 查询待复核告警清单
+description:
+  human:
+    en_US: Query the alert review queue (alerts flagged for shift-manager review) within a time range.
+    zh_Hans: 查询指定时间范围内进入复核队列的告警清单（值班经理待复核 / 已复核），可选只看待复核。
+  llm: Query the alert review queue for the shift manager. Returns all review-queue fields including per-reason counts, per-status counts, a summary banner (current shift, pending totals) and the paged alert rows. Use pending_only to keep only alerts that have not been reviewed yet.
+parameters:
+  - name: days
+    type: number
+    required: true
+    label:
+      en_US: Time Range (days)
+      zh_Hans: 时间范围（天）
+    human_description:
+      en_US: Look back this many days from now (default 7).
+      zh_Hans: 查询从当前时间往前推的天数（默认 7 天）。
+    llm_description: Number of days to look back from now for the review queue time window. Default 7.
+    form: llm
+    default: 7
+
+  - name: pending_only
+    type: boolean
+    required: false
+    label:
+      en_US: Pending Only
+      zh_Hans: 只看待复核
+    human_description:
+      en_US: When enabled, return only alerts that have not been reviewed yet. Leave off to return all (pending, pass and reject).
+      zh_Hans: 开启后只返回尚未复核（待复核）的告警；不填则返回全部（含已通过 / 已驳回）。
+    llm_description: If true, filter to only un-reviewed (pending) alerts. Default false returns all statuses.
+    form: form
+    default: false
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Maximum number of records to return (default 100).
+      zh_Hans: 每页返回的最大记录数（默认 100）。
+    llm_description: Number of records per page, default 100.
+    form: form
+    default: 100
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Number of records to skip for pagination (default 0).
+      zh_Hans: 分页偏移量（默认 0）。
+    llm_description: Offset for pagination, default 0.
+    form: form
+    default: 0
+
+extra:
+  python:
+    source: tools/query_review_queue.py

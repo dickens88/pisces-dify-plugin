@@ -5,7 +5,7 @@ identity:
     en_US: Pisces
     zh_Hans: 双鱼座
   description:
-    en_US: Pisces security incident response platform — API tools.
+    en_US: Pisces SIEM platform — API tools.
     zh_Hans: 双鱼座安全事件响应平台 — API工具集。
   icon: icon.svg
 credentials_for_provider:
@@ -44,6 +44,8 @@ tools:
   - tools/add_ioc.yaml
   - tools/create_deeptrace_task.yaml
   - tools/stream_deeptrace_task.yaml
+  - tools/query_review_queue.yaml
+  - tools/query_shift_managers.yaml
 extra:
   python:
     source: provider/pisces.py

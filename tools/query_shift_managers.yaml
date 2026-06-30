@@ -1,0 +1,41 @@
+identity:
+  name: query_shift_managers
+  author: charles
+  label:
+    en_US: Query Shift Managers
+    zh_Hans: 查询值班经理清单
+description:
+  human:
+    en_US: Query the duty (shift) manager roster within a time range, or look up the current on-duty manager.
+    zh_Hans: 查询指定时间范围内的值班经理排班清单；也可查看当前时间的值班经理。
+  llm: Query the shift-manager duty roster. By default returns roster entries (manager_user, backup_user, period_start, period_end, note, etc.) whose duty period overlaps the past N days. Set current_only=true to instead return the single shift that covers the current date (the current on-duty manager).
+parameters:
+  - name: days
+    type: number
+    required: true
+    label:
+      en_US: Time Range (days)
+      zh_Hans: 时间范围（天）
+    human_description:
+      en_US: Look back this many days from now for roster entries (default 30). Ignored when "Current Manager Only" is enabled.
+      zh_Hans: 查询从当前时间往前推的天数（默认 30 天）。开启"只看当前值班经理"时忽略此项。
+    llm_description: Number of days to look back from now for roster entries. Default 30. Ignored when current_only is true.
+    form: llm
+    default: 30
+
+  - name: current_only
+    type: boolean
+    required: false
+    label:
+      en_US: Current Manager Only
+      zh_Hans: 只看当前值班经理
+    human_description:
+      en_US: When enabled, return only the duty manager on shift right now instead of the roster list.
+      zh_Hans: 开启后只返回当前时间正在值班的值班经理，而非整个排班清单。
+    llm_description: If true, return only the current on-duty shift (the manager covering the current date). Default false returns the roster list.
+    form: form
+    default: false
+
+extra:
+  python:
+    source: tools/query_shift_managers.py
