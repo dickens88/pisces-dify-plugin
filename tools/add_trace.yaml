@@ -1,0 +1,27 @@
+identity:
+  name: add_trace
+  author: charles
+  label:
+    en_US: Add Trace
+    zh_Hans: 添加溯源
+description:
+  human:
+    en_US: Add a trace (attribution) task for a tenant. Checks the existing trace status first; if a trace is already running or completed it returns the existing record, otherwise it creates one with status waiting.
+    zh_Hans: 为租户添加溯源任务。先查询画像里的溯源状态：若已在溯源中或已完成，则返回已有溯源记录；否则新增溯源任务并将状态设为 waiting。
+  llm: Add a trace (attribution) task for a tenant identified by its tenant name. The tool first reads the entity profile's trace status; if the tenant is already being traced (running) or the trace is complete, it returns the existing trace record without re-adding. Otherwise it creates a new trace task with status "waiting". Only tenant names are supported.
+parameters:
+  - name: object_name
+    type: string
+    required: true
+    label:
+      en_US: Tenant Name
+      zh_Hans: 租户名
+    human_description:
+      en_US: The tenant name to add a trace task for. This endpoint currently only supports tenant names.
+      zh_Hans: 要添加溯源的租户名。该接口目前仅支持传入租户名。
+    llm_description: The tenant name identifying the tenant to add a trace task to. Must be a tenant name.
+    form: llm
+
+extra:
+  python:
+    source: tools/add_trace.py

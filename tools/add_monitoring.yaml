@@ -1,0 +1,40 @@
+identity:
+  name: add_monitoring
+  author: charles
+  label:
+    en_US: Add Monitoring
+    zh_Hans: 添加盯防
+description:
+  human:
+    en_US: Add (or remove) a monitoring flag on an entity profile.
+    zh_Hans: 在实体画像上添加（或取消）盯防标记（monitoring）。
+  llm: Add a monitoring flag to an entity profile identified by object_name, marking it for continuous watching. The flag records who added it and when. Set enable to false to remove the monitoring flag.
+parameters:
+  - name: object_name
+    type: string
+    required: true
+    label:
+      en_US: Object Name
+      zh_Hans: 实体名称
+    human_description:
+      en_US: The object name of the entity to mark for monitoring, e.g. a tenant name, domain id or IP address.
+      zh_Hans: 要添加盯防的实体名称，例如租户名、域账号或 IP 地址。
+    llm_description: The unique object_name identifying the entity to add a monitoring flag to.
+    form: llm
+
+  - name: enable
+    type: boolean
+    required: false
+    label:
+      en_US: Enable Monitoring
+      zh_Hans: 启用盯防
+    human_description:
+      en_US: Whether to add the monitoring flag (true, default) or remove it (false).
+      zh_Hans: 添加盯防标记（true，默认）或取消盯防标记（false）。
+    llm_description: Set true (default) to add the monitoring flag, or false to remove it.
+    form: form
+    default: true
+
+extra:
+  python:
+    source: tools/add_monitoring.py

@@ -1,0 +1,27 @@
+identity:
+  name: query_entity_profile
+  author: charles
+  label:
+    en_US: Query Entity Profile
+    zh_Hans: 查询实体画像
+description:
+  human:
+    en_US: Query the entity profile (portrait) information for a given entity by its object name.
+    zh_Hans: 根据实体名称（object_name）查询该实体的画像信息。
+  llm: Query the entity profile for a single entity identified by its object_name (e.g. a tenant name, domain id or IP). Returns the full profile document including basic info, tenant tags, monitoring/trace state and recent related alerts.
+parameters:
+  - name: object_name
+    type: string
+    required: true
+    label:
+      en_US: Object Name
+      zh_Hans: 实体名称
+    human_description:
+      en_US: The object name of the entity to query, e.g. a tenant name, domain id or IP address.
+      zh_Hans: 要查询的实体名称，例如租户名、域账号或 IP 地址。
+    llm_description: The unique object_name identifying the entity to look up (e.g. a tenant name, or an IP/domain id).
+    form: llm
+
+extra:
+  python:
+    source: tools/query_entity_profile.py
