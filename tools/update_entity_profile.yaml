@@ -101,15 +101,15 @@ parameters:
     form: llm
 
   - name: responses
-    type: array
+    type: string
     required: false
     label:
       en_US: Response Dispositions
       zh_Hans: 响应处置
     human_description:
-      en_US: "A JSON array of response disposition records. Replaces the stored responses. Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}."
-      zh_Hans: "响应处置记录的 JSON 数组，会替换已存储的 responses。每个元素结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}。"
-    llm_description: "A JSON array of response disposition records that replaces the entity's stored responses. Each element is a JSON object with keys: app_id (string), title (string), param (object), status (string, e.g. completed), update_user (string), update_time (string)."
+      en_US: "A JSON array (as a string) of response disposition records. Replaces the stored responses. Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}."
+      zh_Hans: "响应处置记录的 JSON 数组（字符串形式），会替换已存储的 responses。每个元素结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}。"
+    llm_description: "A JSON array string of response disposition records that replaces the entity's stored responses. Output valid JSON (double quotes, no trailing commas). Each element is a JSON object with keys: app_id (string), title (string), param (object), status (string, e.g. completed), update_user (string), update_time (string)."
     form: llm
 
 extra:
