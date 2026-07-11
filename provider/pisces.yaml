@@ -47,6 +47,7 @@ tools:
   - tools/query_review_queue.yaml
   - tools/query_shift_managers.yaml
   - tools/query_entity_profile.yaml
+  - tools/update_entity_profile.yaml
   - tools/add_monitoring.yaml
   - tools/add_trace.yaml
 extra:

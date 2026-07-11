@@ -1,0 +1,117 @@
+identity:
+  name: update_entity_profile
+  author: charles
+  label:
+    en_US: Update Entity Profile
+    zh_Hans: 更新实体画像
+description:
+  human:
+    en_US: Update editable fields of an entity profile via PATCH /entities/<object_name>.
+    zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像的可编辑字段。
+  llm: Partially update an entity profile identified by object_name (e.g. a tenant name, domain id or IP). Only the fields you provide are changed; omitted fields are left untouched. Editable fields include security classification, investigation status, attacker type, remark, user tags, account status and risk score. To change monitoring or trace state, use the dedicated add_monitoring / add_trace tools instead.
+parameters:
+  - name: object_name
+    type: string
+    required: true
+    label:
+      en_US: Object Name
+      zh_Hans: 实体名称
+    human_description:
+      en_US: The object name of the entity to update, e.g. a tenant name, domain id or IP address.
+      zh_Hans: 要更新的实体名称，例如租户名、域账号或 IP 地址。
+    llm_description: The unique object_name identifying the entity profile to update.
+    form: llm
+
+  - name: security_tag
+    type: select
+    required: false
+    label:
+      en_US: Security Tag
+      zh_Hans: 安全标记
+    human_description:
+      en_US: Security classification of the entity. Leave empty to keep unchanged.
+      zh_Hans: 实体的安全分类。留空则不修改。
+    llm_description: "Security classification: attack (attacker), asset (protected asset), or NA (not applicable)."
+    form: llm
+    options:
+      - value: attack
+        label:
+          en_US: attack
+          zh_Hans: 攻击者
+      - value: asset
+        label:
+          en_US: asset
+          zh_Hans: 资产
+      - value: NA
+        label:
+          en_US: NA
+          zh_Hans: 未分类
+
+  - name: attacker_type
+    type: select
+    required: false
+    label:
+      en_US: Attack Scenario
+      zh_Hans: 攻击场景
+    human_description:
+      en_US: The attack scenario the entity belongs to. Leave empty to keep unchanged.
+      zh_Hans: 实体所属的攻击场景。留空则不修改。
+    llm_description: "Attack scenario: companyNetworkProtection (公司护网), nationalNetworkProtection (国家护网), internalBlueTeam (内部蓝军), or externalAttack (外部攻击)."
+    form: llm
+    options:
+      - value: companyNetworkProtection
+        label:
+          en_US: Company Cyber Operation
+          zh_Hans: 公司护网
+      - value: nationalNetworkProtection
+        label:
+          en_US: National Cyber Operation
+          zh_Hans: 国家护网
+      - value: internalBlueTeam
+        label:
+          en_US: Internal RedTeam
+          zh_Hans: 内部蓝军
+      - value: externalAttack
+        label:
+          en_US: External Attack
+          zh_Hans: 外部攻击
+
+  - name: remark
+    type: string
+    required: false
+    label:
+      en_US: Remark
+      zh_Hans: 备注
+    human_description:
+      en_US: Free-text remark / note on the entity. Leave empty to keep unchanged.
+      zh_Hans: 实体的备注说明（自由文本）。留空则不修改。
+    llm_description: Free-text remark or note to store on the entity profile.
+    form: llm
+
+  - name: user_tags
+    type: string
+    required: false
+    label:
+      en_US: User Tags
+      zh_Hans: 用户标签
+    human_description:
+      en_US: Comma-separated list of user tags. Replaces the existing tags. Leave empty to keep unchanged.
+      zh_Hans: 逗号分隔的用户标签列表，会替换现有标签。留空则不修改。
+    llm_description: Comma-separated user tags. The provided list replaces the entity's existing user_tags.
+    form: llm
+
+  - name: responses
+    type: array
+    required: false
+    label:
+      en_US: Response Dispositions
+      zh_Hans: 响应处置
+    human_description:
+      en_US: "A JSON array of response disposition records. Replaces the stored responses. Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}."
+      zh_Hans: "响应处置记录的 JSON 数组，会替换已存储的 responses。每个元素结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}。"
+    llm_description: "A JSON array of response disposition records that replaces the entity's stored responses. Each element is a JSON object with keys: app_id (string), title (string), param (object), status (string, e.g. completed), update_user (string), update_time (string)."
+    form: llm
+
+extra:
+  python:
+    source: tools/update_entity_profile.py
