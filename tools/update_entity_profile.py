@@ -45,14 +45,15 @@ class UpdateEntityProfileTool(Tool):
         if tenant_tags:
             body["tenant_tags"] = tenant_tags
 
-        # responses: a JSON array string of disposition records (replaces the stored list).
+        # responses: one disposition object (or a JSON array of them) to append.
         responses = tool_parameters.get("responses")
         if responses is not None and str(responses).strip():
             try:
-                body["responses"] = json.loads(responses) if isinstance(responses, str) else responses
+                parsed = json.loads(responses) if isinstance(responses, str) else responses
             except json.JSONDecodeError as e:
                 yield self.create_text_message(f"响应处置（responses）不是合法的 JSON: {e}")
                 return
+            body["responses"] = parsed if isinstance(parsed, list) else [parsed]
 
         if not body:
             yield self.create_text_message("未提供任何要更新的字段。")
