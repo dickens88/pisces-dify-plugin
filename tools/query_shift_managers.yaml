@@ -6,22 +6,21 @@ identity:
     zh_Hans: 查询值班经理清单
 description:
   human:
-    en_US: Query the duty roster (duty manager and/or tracing specialist) within a time range, or look up who is on duty right now.
-    zh_Hans: 查询指定时间范围内的排班清单（值班经理、溯源专员）；也可查看当前时间的值班人员。
-  llm: Query the shift-manager duty roster. By default returns roster entries (manager_user, backup_user, period_start, period_end, role, note, etc.) whose duty period overlaps the past N days, covering both roles - "manager" (值班经理, duty manager) and "tracer" (溯源专员, tracing specialist). Set current_only=true to instead return the shifts covering the current date for both roles.
+    en_US: Query the duty roster (duty manager and/or tracing specialist) from a given start date onward, or look up who is on duty right now.
+    zh_Hans: 查询从指定起始时间起的排班清单（值班经理、溯源专员）；也可查看当前时间的值班人员。
+  llm: Query the shift-manager duty roster. By default returns roster entries (manager_user, backup_user, period_start, period_end, role, note, etc.) whose duty period ends on or after the given start_date (no upper bound, so future-scheduled shifts are included), covering both roles - "manager" (值班经理, duty manager) and "tracer" (溯源专员, tracing specialist). Set current_only=true to instead return the shifts covering the current date for both roles.
 parameters:
-  - name: days
-    type: number
-    required: true
+  - name: start_date
+    type: string
+    required: false
     label:
-      en_US: Time Range (days)
-      zh_Hans: 时间范围（天）
+      en_US: Start Date
+      zh_Hans: 起始时间
     human_description:
-      en_US: Look back this many days from now for roster entries (default 30). Ignored when "Current Duty Only" is enabled.
-      zh_Hans: 查询从当前时间往前推的天数（默认 30 天）。开启"只看当前值班人员"时忽略此项。
-    llm_description: Number of days to look back from now for roster entries. Default 30. Ignored when current_only is true.
+      en_US: Only return roster entries whose duty period ends on or after this date (format YYYY-MM-DD). Defaults to 30 days ago if omitted. There is no upper bound - future-scheduled shifts are included. Ignored when "Current Duty Only" is enabled.
+      zh_Hans: 只返回值班周期结束时间不早于该日期的排班（格式 YYYY-MM-DD）。不填默认取 30 天前。没有结束时间上限，未来的排班也会返回。开启"只看当前值班人员"时忽略此项。
+    llm_description: Start date (YYYY-MM-DD) - only roster entries whose duty period ends on or after this date are returned, with no upper bound (future shifts included too). Defaults to 30 days before today if omitted. Ignored when current_only is true.
     form: llm
-    default: 30
 
   - name: current_only
     type: boolean

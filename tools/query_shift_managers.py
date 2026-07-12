@@ -80,11 +80,9 @@ class QueryShiftManagersTool(Tool):
             yield self.create_json_message(data)
             return
 
-        # ── roster list within the time range (past N days) ──────────────────
-        days = int(tool_parameters.get("days") or 30)
+        # ── roster list from a start date onward (no upper bound) ────────────
         today = datetime.now(timezone.utc).date()
-        win_start = today - timedelta(days=days)
-        win_end = today
+        win_start = _parse_date(tool_parameters.get("start_date")) or (today - timedelta(days=30))
 
         try:
             resp = requests.get(
@@ -108,12 +106,12 @@ class QueryShiftManagersTool(Tool):
         rosters = data.get("data", [])
 
         # The roster endpoint has no server-side time filter, so keep only the
-        # rosters whose duty period overlaps the requested [win_start, win_end] window.
+        # rosters whose duty period ends on or after win_start (no upper bound,
+        # so future-scheduled shifts are included too).
         filtered = []
         for r in rosters:
-            ps = _parse_date(r.get("period_start"))
             pe = _parse_date(r.get("period_end"))
-            if ps and pe and ps <= win_end and pe >= win_start:
+            if pe and pe >= win_start:
                 filtered.append(r)
 
         counts: dict[str, int] = {}
@@ -124,13 +122,12 @@ class QueryShiftManagersTool(Tool):
         summary = f"共 {len(filtered)} 条排班" + (f"（{breakdown}）" if breakdown else "")
 
         yield self.create_text_message(
-            f"近 {days} 天（{win_start} ~ {win_end}）排班清单：{summary}。"
+            f"自 {win_start} 起排班清单：{summary}。"
         )
         yield self.create_json_message(
             {
                 "data": filtered,
                 "total": len(filtered),
                 "time_from": win_start.isoformat(),
-                "time_to": win_end.isoformat(),
             }
         )
