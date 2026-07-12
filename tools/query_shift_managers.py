@@ -21,6 +21,13 @@ def _parse_date(value: Any):
         return None
 
 
+ROLE_LABELS = {"manager": "值班经理", "tracer": "溯源专员"}
+
+
+def _role_label(role: Any) -> str:
+    return ROLE_LABELS.get(role, role or "值班经理")
+
+
 class QueryShiftManagersTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         base_url = self.runtime.credentials["base_url"].rstrip("/")
@@ -38,7 +45,7 @@ class QueryShiftManagersTool(Tool):
 
         current_only = bool(tool_parameters.get("current_only"))
 
-        # ── current duty manager (the shift covering "now") ──────────────────
+        # ── current duty shifts for both roles (the shifts covering "now") ──
         if current_only:
             try:
                 resp = requests.get(
@@ -55,19 +62,21 @@ class QueryShiftManagersTool(Tool):
             if not resp.ok:
                 body = resp.json() if resp.content else {}
                 msg = body.get("error_message") or resp.text
-                yield self.create_text_message(f"查询当前值班经理失败（{resp.status_code}）: {msg}")
+                yield self.create_text_message(f"查询当前值班人员失败（{resp.status_code}）: {msg}")
                 return
 
             data = resp.json()
-            shift = data.get("data")
-            if not shift:
+            shifts = data.get("data") or []
+            if not shifts:
                 yield self.create_text_message("当前没有匹配的值班排班。")
             else:
-                yield self.create_text_message(
-                    f"当前值班经理：{shift.get('manager_user') or '未指定'}"
+                lines = [
+                    f"当前{_role_label(shift.get('role'))}：{shift.get('manager_user') or '未指定'}"
                     f"（备份：{shift.get('backup_user') or '无'}，"
-                    f"值班周期 {shift.get('period_start')} ~ {shift.get('period_end')}）。"
-                )
+                    f"值班周期 {shift.get('period_start')} ~ {shift.get('period_end')}）"
+                    for shift in shifts
+                ]
+                yield self.create_text_message("；".join(lines) + "。")
             yield self.create_json_message(data)
             return
 
@@ -92,7 +101,7 @@ class QueryShiftManagersTool(Tool):
         if not resp.ok:
             body = resp.json() if resp.content else {}
             msg = body.get("error_message") or resp.text
-            yield self.create_text_message(f"查询值班经理清单失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(f"查询排班清单失败（{resp.status_code}）: {msg}")
             return
 
         data = resp.json()
@@ -107,8 +116,15 @@ class QueryShiftManagersTool(Tool):
             if ps and pe and ps <= win_end and pe >= win_start:
                 filtered.append(r)
 
+        counts: dict[str, int] = {}
+        for r in filtered:
+            key = r.get("role") or "manager"
+            counts[key] = counts.get(key, 0) + 1
+        breakdown = "，".join(f"{_role_label(k)} {v} 条" for k, v in counts.items())
+        summary = f"共 {len(filtered)} 条排班" + (f"（{breakdown}）" if breakdown else "")
+
         yield self.create_text_message(
-            f"近 {days} 天（{win_start} ~ {win_end}）值班经理清单：共 {len(filtered)} 条排班。"
+            f"近 {days} 天（{win_start} ~ {win_end}）排班清单：{summary}。"
         )
         yield self.create_json_message(
             {

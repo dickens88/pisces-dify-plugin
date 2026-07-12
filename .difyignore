@@ -13,4 +13,8 @@ build/
 .vscode/
 *.swp
 .DS_Store
-*.difypkg
+
+# VCS
+.git/
+.gitignore
+.github/
