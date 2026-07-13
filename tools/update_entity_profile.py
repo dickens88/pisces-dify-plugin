@@ -55,6 +55,19 @@ class UpdateEntityProfileTool(Tool):
                 return
             body["responses"] = parsed if isinstance(parsed, list) else [parsed]
 
+        # extra_fields: arbitrary MongoDB fields, written through as-is by the API.
+        extra_fields = tool_parameters.get("extra_fields")
+        if extra_fields is not None and str(extra_fields).strip():
+            try:
+                parsed = json.loads(extra_fields) if isinstance(extra_fields, str) else extra_fields
+            except json.JSONDecodeError as e:
+                yield self.create_text_message(f"附加字段（extra_fields）不是合法的 JSON: {e}")
+                return
+            if not isinstance(parsed, dict):
+                yield self.create_text_message("附加字段（extra_fields）必须是一个 JSON 对象。")
+                return
+            body["extra_fields"] = parsed
+
         if not body:
             yield self.create_text_message("未提供任何要更新的字段。")
             return

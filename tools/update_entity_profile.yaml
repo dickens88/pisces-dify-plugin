@@ -8,7 +8,7 @@ description:
   human:
     en_US: Update editable fields of an entity profile via PATCH /entities/<object_name>.
     zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像的可编辑字段。
-  llm: Partially update an entity profile identified by object_name (e.g. a tenant name, domain id or IP). Only the fields you provide are changed; omitted fields are left untouched. Editable fields include security classification, investigation status, attacker type, remark, user tags, account status and risk score. To change monitoring or trace state, use the dedicated add_monitoring / add_trace tools instead.
+  llm: Partially update an entity profile identified by object_name (e.g. a tenant name, domain id or IP). Only the fields you provide are changed; omitted fields are left untouched. Editable fields include security classification, investigation status, attacker type, remark, user tags, account status and risk score. Any field not covered by those parameters can be written via extra_fields, a JSON object applied directly to the entity's MongoDB document. To change monitoring or trace state, use the dedicated add_monitoring / add_trace tools instead.
 parameters:
   - name: object_name
     type: string
@@ -110,6 +110,18 @@ parameters:
       en_US: "A response disposition record (JSON object as a string), or a JSON array of them. Appended to the entity's responses (history is kept). Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}."
       zh_Hans: "一条响应处置记录（JSON 对象字符串），或多条记录的 JSON 数组。会追加到实体的 responses（保留历史）。每条结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\", \"update_time\": \"\"}。"
     llm_description: "A response disposition record as a JSON object string (or a JSON array of such objects) to append to the entity's responses history. Output valid JSON (double quotes, no trailing commas). Each object has keys: app_id (string), title (string), param (object), status (string, e.g. completed), update_user (string), update_time (string)."
+    form: llm
+
+  - name: extra_fields
+    type: string
+    required: false
+    label:
+      en_US: Extra Fields (JSON)
+      zh_Hans: 附加字段（JSON）
+    human_description:
+      en_US: "A JSON object of arbitrary fields to write straight into the entity's MongoDB document. Nested objects are flattened into dotted paths, so {\"tenant_tags\": {\"foo\": 1}} sets tenant_tags.foo without touching its siblings; you may also pass dotted keys directly, e.g. {\"tenant_tags.foo\": 1}. Overrides the other parameters on conflict. Keys starting with $ and _id are rejected."
+      zh_Hans: "任意字段的 JSON 对象，会被直接写入实体在 MongoDB 中的文档。嵌套对象会展开成点号路径，例如 {\"tenant_tags\": {\"foo\": 1}} 只更新 tenant_tags.foo，不影响同级字段；也可以直接传点号路径，如 {\"tenant_tags.foo\": 1}。与上面的参数冲突时以本字段为准。以 $ 开头的键和 _id 会被拒绝。"
+    llm_description: "A JSON object (as a string) of arbitrary fields to write directly into the entity's MongoDB document — an escape hatch for fields not covered by the other parameters. Output valid JSON (double quotes, no trailing commas). Nested objects are flattened to dotted paths, so {\"tenant_tags\": {\"foo\": 1}} updates only tenant_tags.foo and leaves sibling keys intact; dotted keys such as {\"basic.domainname\": \"x\"} also work. Values may be any JSON type. Keys beginning with $ or named _id are rejected with a 400 error. Only use this when the user explicitly asks for a field the other parameters do not cover."
     form: llm
 
 extra:
