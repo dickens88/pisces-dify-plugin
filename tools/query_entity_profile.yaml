@@ -6,21 +6,59 @@ identity:
     zh_Hans: 查询实体画像
 description:
   human:
-    en_US: Query the entity profile (portrait) information for a given entity by its object name.
-    zh_Hans: 根据实体名称（object_name）查询该实体的画像信息。
-  llm: Query the entity profile for a single entity identified by its object_name (e.g. a tenant name, domain id or IP). Returns the full profile document including basic info, tenant tags, monitoring/trace state and recent related alerts.
+    en_US: Query the entity profile (portrait) for a single entity by its object name, or list/search entity profiles when object_name is omitted.
+    zh_Hans: 根据实体名称（object_name）查询该实体的画像信息；不填 object_name 时改为列表搜索，可按是否添加盯防等条件过滤。
+  llm: Query entity profiles. If object_name is given, returns the full profile document for that single entity (basic info, tenant tags, monitoring/trace state and recent related alerts). If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag; leaving monitoring unset returns all entities regardless of monitoring state.
 parameters:
   - name: object_name
     type: string
-    required: true
+    required: false
     label:
       en_US: Object Name
       zh_Hans: 实体名称
     human_description:
-      en_US: The object name of the entity to query, e.g. a tenant name, domain id or IP address.
-      zh_Hans: 要查询的实体名称，例如租户名、域账号或 IP 地址。
-    llm_description: The unique object_name identifying the entity to look up (e.g. a tenant name, or an IP/domain id).
+      en_US: The object name of the entity to query, e.g. a tenant name, domain id or IP address. Leave empty to list/search profiles instead.
+      zh_Hans: 要查询的实体名称，例如租户名、域账号或 IP 地址。留空则改为列表搜索多个实体。
+    llm_description: The unique object_name identifying the entity to look up (e.g. a tenant name, or an IP/domain id). Omit this to search/list multiple entity profiles instead of fetching one.
     form: llm
+
+  - name: monitoring
+    type: boolean
+    required: false
+    label:
+      en_US: Monitoring Only
+      zh_Hans: 仅盯防
+    human_description:
+      en_US: Only used when object_name is omitted (list mode). Set true to return only entities with the monitoring flag added, false to return only entities without it. Leave unset to return all entities regardless of monitoring state.
+      zh_Hans: 仅在不填 object_name（列表模式）时生效。设为 true 只返回已添加盯防的实体，设为 false 只返回未添加盯防的实体，不填则返回全部（不按盯防状态过滤）。
+    llm_description: List-mode only filter. true = only monitored entities, false = only non-monitored entities, omitted = no filter on monitoring state (all entities).
+    form: llm
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Only used in list mode (object_name omitted). Maximum number of records to return (default 50).
+      zh_Hans: 仅在列表模式（不填 object_name）时生效。每页返回的最大记录数（默认 50）。
+    llm_description: List-mode only. Number of records per page, default 50.
+    form: llm
+    default: 50
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Only used in list mode (object_name omitted). Number of records to skip for pagination (default 0).
+      zh_Hans: 仅在列表模式（不填 object_name）时生效。分页偏移量（默认 0）。
+    llm_description: List-mode only. Offset for pagination, default 0.
+    form: llm
+    default: 0
 
 extra:
   python:
