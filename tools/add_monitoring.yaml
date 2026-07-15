@@ -35,6 +35,18 @@ parameters:
     form: form
     default: true
 
+  - name: remark
+    type: string
+    required: false
+    label:
+      en_US: Remark
+      zh_Hans: 备注
+    human_description:
+      en_US: Optional free-text remark / note to store on the entity (tenant_tags.remark). Leave empty to keep it unchanged.
+      zh_Hans: 可选的备注说明（自由文本），写入 tenant_tags.remark。留空则不修改该字段。
+    llm_description: Optional free-text remark to store on the entity profile alongside the monitoring flag. Written to tenant_tags.remark if provided; omitted means the existing remark is left untouched.
+    form: llm
+
 extra:
   python:
     source: tools/add_monitoring.py

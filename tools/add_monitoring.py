@@ -29,7 +29,12 @@ class AddMonitoringTool(Tool):
         enable = tool_parameters.get("enable")
         enable = True if enable is None else bool(enable)
 
-        body = {"tenant_tags": {"monitoring": enable}}
+        tenant_tags: dict[str, Any] = {"monitoring": enable}
+        remark = tool_parameters.get("remark")
+        if remark is not None and str(remark).strip() != "":
+            tenant_tags["remark"] = remark
+
+        body = {"tenant_tags": tenant_tags}
         url = f"{base_url}/entities/{quote(str(object_name), safe='')}"
         try:
             resp = requests.patch(
