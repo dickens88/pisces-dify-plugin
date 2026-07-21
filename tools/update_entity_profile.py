@@ -12,9 +12,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from provider.pisces import get_token
 
-# tenant_tags.* fields exposed as simple string/select params.
-TENANT_TAG_PARAMS = ("security_tag", "attacker_type", "remark")
-
 
 class UpdateEntityProfileTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
@@ -29,21 +26,7 @@ class UpdateEntityProfileTool(Tool):
             return
 
         object_name = tool_parameters["object_name"]
-
-        tenant_tags: dict[str, Any] = {}
-        for key in TENANT_TAG_PARAMS:
-            val = tool_parameters.get(key)
-            if val is not None and str(val).strip() != "":
-                tenant_tags[key] = val
-
-        # user_tags: accept a comma-separated string, store as a list.
-        user_tags_raw = tool_parameters.get("user_tags")
-        if user_tags_raw is not None and str(user_tags_raw).strip() != "":
-            tenant_tags["user_tags"] = [t.strip() for t in str(user_tags_raw).split(",") if t.strip()]
-
         body: dict[str, Any] = {}
-        if tenant_tags:
-            body["tenant_tags"] = tenant_tags
 
         # responses: one disposition object (or a JSON array of them) to append.
         responses = tool_parameters.get("responses")
@@ -54,6 +37,35 @@ class UpdateEntityProfileTool(Tool):
                 yield self.create_text_message(f"响应处置（responses）不是合法的 JSON: {e}")
                 return
             body["responses"] = parsed if isinstance(parsed, list) else [parsed]
+
+        # behaviors: one behavior object (or a JSON array of them) to append.
+        # The server stamps each one with a UTC update_time.
+        behaviors = tool_parameters.get("behaviors")
+        if behaviors is not None and str(behaviors).strip():
+            try:
+                parsed = json.loads(behaviors) if isinstance(behaviors, str) else behaviors
+            except json.JSONDecodeError as e:
+                yield self.create_text_message(f"行为数据（behaviors）不是合法的 JSON: {e}")
+                return
+            if isinstance(parsed, dict):  # a single record needs no array wrapper
+                parsed = [parsed]
+            if not isinstance(parsed, list):
+                yield self.create_text_message(
+                    "行为数据（behaviors）必须是一个 JSON 对象或对象数组，例如 "
+                    '{"ip": "1.2.3.4", "service": "ssh", "action": "login"}。'
+                )
+                return
+            bad = [i for i, item in enumerate(parsed) if not isinstance(item, dict)]
+            if bad:
+                yield self.create_text_message(
+                    f"行为数据（behaviors）第 {', '.join(str(i + 1) for i in bad)} 项不是 JSON 对象，"
+                    "数组中每一项都必须是对象。"
+                )
+                return
+            if not parsed:
+                yield self.create_text_message("行为数据（behaviors）是空数组，没有可追加的记录。")
+                return
+            body["behaviors"] = parsed
 
         # extra_fields: arbitrary MongoDB fields, written through as-is by the API.
         extra_fields = tool_parameters.get("extra_fields")

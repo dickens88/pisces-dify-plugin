@@ -43,7 +43,8 @@ tools:
   - tools/query_iocs.yaml
   - tools/add_ioc.yaml
   - tools/create_deeptrace_task.yaml
-  - tools/stream_deeptrace_task.yaml
+  - tools/query_deeptrace_status.yaml
+  - tools/get_deeptrace_result.yaml
   - tools/query_review_queue.yaml
   - tools/query_shift_managers.yaml
   - tools/query_entity_profile.yaml

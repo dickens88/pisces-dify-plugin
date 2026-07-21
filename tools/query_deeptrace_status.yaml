@@ -1,0 +1,27 @@
+identity:
+  name: query_deeptrace_status
+  author: charles
+  label:
+    en_US: Query DeepTrace Task Status
+    zh_Hans: 查询Deeptrace任务状态
+description:
+  human:
+    en_US: Query the status of a DeepTrace session by its session_id.
+    zh_Hans: 根据 session_id 查询Deeptrace任务的当前状态。
+  llm: Query the current status of a DeepTrace session by session_id. Returns the session record including status (idle, running, stopped or error), title, model, source and metrics. Use this to poll whether an analysis run has finished before fetching its result.
+parameters:
+  - name: session_id
+    type: string
+    required: true
+    label:
+      en_US: Session ID
+      zh_Hans: 会话 ID
+    human_description:
+      en_US: The session_id of the DeepTrace task to check, as returned by the create DeepTrace task tool.
+      zh_Hans: 要查询的Deeptrace任务的 session_id，由创建Deeptrace任务工具返回。
+    llm_description: The session_id of the DeepTrace session whose status should be queried.
+    form: llm
+
+extra:
+  python:
+    source: tools/query_deeptrace_status.py

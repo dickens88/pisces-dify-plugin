@@ -6,9 +6,9 @@ identity:
     zh_Hans: 更新实体画像
 description:
   human:
-    en_US: Update editable fields of an entity profile via PATCH /entities/<object_name>.
-    zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像的可编辑字段。
-  llm: Partially update an entity profile identified by object_name (e.g. a tenant name, domain id or IP). Only the fields you provide are changed; omitted fields are left untouched. Editable fields include security classification, investigation status, attacker type, remark, user tags, account status and risk score. Any field not covered by those parameters can be written via extra_fields, a JSON object applied directly to the entity's MongoDB document. To change monitoring or trace state, use the dedicated add_monitoring / add_trace tools instead.
+    en_US: Update an entity profile via PATCH /entities/<object_name>. If the entity has no profile yet, the server looks it up in Dify and creates one only when Dify knows the tenant.
+    zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像。若该实体尚无画像，服务端会先到 Dify 查询，只有查到时才创建画像并写入本次更新。
+  llm: Partially update an entity profile identified by object_name. Only the fields you provide are changed. Appends response dispositions and behavior records, and can write any other MongoDB field via extra_fields. If no profile exists yet, the server resolves the tenant from Dify first; if Dify does not know the name, nothing is written and the call fails with "entity not found". To change monitoring or trace state, use the add_monitoring / add_trace tools instead.
 parameters:
   - name: object_name
     type: string
@@ -17,87 +17,9 @@ parameters:
       en_US: Object Name
       zh_Hans: 实体名称
     human_description:
-      en_US: The object name of the entity to update, e.g. a tenant name, domain id or IP address.
+      en_US: The entity to update, e.g. a tenant name, domain id or IP address.
       zh_Hans: 要更新的实体名称，例如租户名、域账号或 IP 地址。
-    llm_description: The unique object_name identifying the entity profile to update.
-    form: llm
-
-  - name: security_tag
-    type: select
-    required: false
-    label:
-      en_US: Security Tag
-      zh_Hans: 安全标记
-    human_description:
-      en_US: Security classification of the entity. Leave empty to keep unchanged.
-      zh_Hans: 实体的安全分类。留空则不修改。
-    llm_description: "Security classification: attack (attacker), asset (protected asset), or NA (not applicable)."
-    form: llm
-    options:
-      - value: attack
-        label:
-          en_US: attack
-          zh_Hans: 攻击者
-      - value: asset
-        label:
-          en_US: asset
-          zh_Hans: 资产
-      - value: NA
-        label:
-          en_US: NA
-          zh_Hans: 未分类
-
-  - name: attacker_type
-    type: select
-    required: false
-    label:
-      en_US: Attack Scenario
-      zh_Hans: 攻击场景
-    human_description:
-      en_US: The attack scenario the entity belongs to. Leave empty to keep unchanged.
-      zh_Hans: 实体所属的攻击场景。留空则不修改。
-    llm_description: "Attack scenario: companyNetworkProtection (公司护网), nationalNetworkProtection (国家护网), internalBlueTeam (内部蓝军), or externalAttack (外部攻击)."
-    form: llm
-    options:
-      - value: companyNetworkProtection
-        label:
-          en_US: Company Cyber Operation
-          zh_Hans: 公司护网
-      - value: nationalNetworkProtection
-        label:
-          en_US: National Cyber Operation
-          zh_Hans: 国家护网
-      - value: internalBlueTeam
-        label:
-          en_US: Internal RedTeam
-          zh_Hans: 内部蓝军
-      - value: externalAttack
-        label:
-          en_US: External Attack
-          zh_Hans: 外部攻击
-
-  - name: remark
-    type: string
-    required: false
-    label:
-      en_US: Remark
-      zh_Hans: 备注
-    human_description:
-      en_US: Free-text remark / note on the entity. Leave empty to keep unchanged.
-      zh_Hans: 实体的备注说明（自由文本）。留空则不修改。
-    llm_description: Free-text remark or note to store on the entity profile.
-    form: llm
-
-  - name: user_tags
-    type: string
-    required: false
-    label:
-      en_US: User Tags
-      zh_Hans: 用户标签
-    human_description:
-      en_US: Comma-separated list of user tags. Replaces the existing tags. Leave empty to keep unchanged.
-      zh_Hans: 逗号分隔的用户标签列表，会替换现有标签。留空则不修改。
-    llm_description: Comma-separated user tags. The provided list replaces the entity's existing user_tags.
+    llm_description: The object_name identifying the entity profile to update.
     form: llm
 
   - name: responses
@@ -107,9 +29,21 @@ parameters:
       en_US: Response Dispositions
       zh_Hans: 响应处置
     human_description:
-      en_US: "A response disposition record (JSON object as a string), or a JSON array of them. Appended to the entity's responses (history is kept). Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}. update_time is stamped by the server."
-      zh_Hans: "一条响应处置记录（JSON 对象字符串），或多条记录的 JSON 数组。会追加到实体的 responses（保留历史）。每条结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}。update_time 由服务端写入。"
-    llm_description: "A response disposition record as a JSON object string (or a JSON array of such objects) to append to the entity's responses history. Output valid JSON (double quotes, no trailing commas). Each object has keys: app_id (string), title (string), param (object), status (string, e.g. completed), update_user (string). Do not set update_time — the server stamps it."
+      en_US: "A response disposition record, or a JSON array of them, appended to the entity's responses. Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}. update_time is added by the server."
+      zh_Hans: "一条响应处置记录，或多条记录的 JSON 数组，会追加到实体的 responses（保留历史）。每条结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}。update_time 由服务端写入。"
+    llm_description: "A JSON object (or array of objects) appended to the entity's responses history. Keys: app_id, title, param (object), status, update_user. Do not set update_time — the server stamps it."
+    form: llm
+
+  - name: behaviors
+    type: string
+    required: false
+    label:
+      en_US: Behavior Records
+      zh_Hans: 行为数据
+    human_description:
+      en_US: "A behavior record, or a JSON array of them, appended to the entity's behaviors. A single record needs no array wrapper: {\"ip\": \"1.2.3.4\", \"service\": \"ssh\", \"action\": \"login\"}. The keys inside each object are free-form. update_time is added by the server."
+      zh_Hans: "一条行为记录，或多条记录的 JSON 数组，会追加到实体的 behaviors。只加一条时可以直接传对象，不必套数组：{\"ip\": \"1.2.3.4\", \"service\": \"ssh\", \"action\": \"login\"}。对象内部字段不限。update_time 由服务端写入。"
+    llm_description: "A behavior record as a JSON object (or an array of such objects) appended to the entity's behaviors array. For a single record just pass the object, e.g. {\"ip\": \"1.2.3.4\", \"service\": \"ssh\", \"action\": \"login\"}; use an array for several. Every element must be an object — an array containing non-objects is rejected. Keys within each object are free-form. Do not set update_time — the server stamps it."
     form: llm
 
   - name: extra_fields
@@ -119,9 +53,9 @@ parameters:
       en_US: Extra Fields (JSON)
       zh_Hans: 附加字段（JSON）
     human_description:
-      en_US: "A JSON object of arbitrary fields to write straight into the entity's MongoDB document. Nested objects are flattened into dotted paths, so {\"tenant_tags\": {\"foo\": 1}} sets tenant_tags.foo without touching its siblings; you may also pass dotted keys directly, e.g. {\"tenant_tags.foo\": 1}. A null value DELETES that field, e.g. {\"tenant_tags\": {\"remark\": null}} removes tenant_tags.remark. Overrides the other parameters on conflict. Timestamp fields (updated_at, tenant_tags.update_time, tenant_tags.monitoring.update_time, ...) accept an ISO-8601 string and are stored as real dates. Keys starting with $ or named _id are rejected."
-      zh_Hans: "任意字段的 JSON 对象，会被直接写入实体在 MongoDB 中的文档。嵌套对象会展开成点号路径，例如 {\"tenant_tags\": {\"foo\": 1}} 只更新 tenant_tags.foo，不影响同级字段；也可以直接传点号路径，如 {\"tenant_tags.foo\": 1}。值为 null 表示删除该字段，例如 {\"tenant_tags\": {\"remark\": null}} 会删除 tenant_tags.remark。与上面的参数冲突时以本字段为准。时间字段（updated_at、tenant_tags.update_time、tenant_tags.monitoring.update_time 等）可以直接写，传 ISO-8601 字符串（如 \"2026-07-20T12:00:00Z\"）即可，服务端会转成真正的 Date 类型；格式无法解析会返回 400。以 $ 开头的键和 _id 会被拒绝。"
-    llm_description: "A JSON object (as a string) of arbitrary fields to write directly into the entity's MongoDB document — an escape hatch for fields not covered by the other parameters. Output valid JSON (double quotes, no trailing commas). Nested objects are flattened to dotted paths, so {\"tenant_tags\": {\"foo\": 1}} updates only tenant_tags.foo and leaves sibling keys intact; dotted keys such as {\"basic.domainname\": \"x\"} also work. Values may be any JSON type. A null value DELETES the field from the document rather than storing null — use this to remove a field, e.g. {\"tenant_tags\": {\"remark\": null}} deletes tenant_tags.remark. Timestamp fields (created_at, updated_at, first_seen, last_seen, risk.updated_at, tenant_tags.update_time, tenant_tags.monitoring.update_time, tenant_tags.trace_result.start_time, tenant_tags.trace_result.update_time) may be written: pass an ISO-8601 string such as \"2026-07-20T12:00:00Z\" and the server converts it to a real date. An unparseable timestamp is rejected with a 400 error. Keys beginning with $ or named _id are also rejected with a 400. Only use this when the user explicitly asks for a field the other parameters do not cover."
+      en_US: "A JSON object of arbitrary fields written straight into the entity's MongoDB document, e.g. {\"tenant_tags\": {\"remark\": \"xxx\"}} or the dotted form {\"tenant_tags.remark\": \"xxx\"}. Nested objects update only the named leaf, leaving sibling fields intact. A null value deletes the field. Timestamps accept an ISO-8601 string and are stored as real dates. Keys starting with $ or named _id are rejected."
+      zh_Hans: "任意字段的 JSON 对象，直接写入实体在 MongoDB 中的文档，例如 {\"tenant_tags\": {\"remark\": \"xxx\"}}，也可用点号形式 {\"tenant_tags.remark\": \"xxx\"}。嵌套对象只更新指定的叶子字段，不影响同级字段。值为 null 表示删除该字段。时间字段传 ISO-8601 字符串（如 \"2026-07-20T12:00:00Z\"）会被转成真正的 Date 类型。以 $ 开头的键和 _id 会被拒绝。"
+    llm_description: "A JSON object of arbitrary fields written directly into the entity's MongoDB document — the escape hatch for anything the other parameters do not cover, such as remark, security_tag, attacker_type or user_tags (all under tenant_tags). Nested objects are flattened to dotted paths, so {\"tenant_tags\": {\"remark\": \"x\"}} updates only tenant_tags.remark and leaves sibling keys intact; dotted keys like {\"basic.domainname\": \"x\"} also work. A null value DELETES the field rather than storing null. Timestamps may be written as an ISO-8601 string and are converted to real dates; an unparseable one gives a 400, as do keys beginning with $ or named _id."
     form: llm
 
 extra:

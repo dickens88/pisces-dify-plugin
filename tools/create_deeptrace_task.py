@@ -31,10 +31,17 @@ class CreateDeeptraceTaskTool(Tool):
             return
 
         # Step 1: Create session
+        session_body: dict[str, Any] = {"title": title or question[:100]}
+        # Passing alert_id links the session to the alert (alert_deeptrace_relation)
+        # and makes it a shared "investigation" session rather than a personal one.
+        alert_id = (tool_parameters.get("alert_id") or "").strip()
+        if alert_id:
+            session_body["alert_id"] = alert_id
+
         try:
             resp = requests.post(
                 f"{base_url}/deeptrace/sessions",
-                json={"title": title or question[:100]},
+                json=session_body,
                 headers=headers,
                 timeout=15,
                 verify=False,
@@ -79,9 +86,13 @@ class CreateDeeptraceTaskTool(Tool):
             yield self.create_text_message(f"会话已创建（{session_id}）但启动任务失败（{resp2.status_code}）: {msg2}")
             return
 
-        yield self.create_text_message(f"深度溯源任务已创建并启动，session_id: {session_id}")
-        yield self.create_json_message({
+        linked = f"，已关联告警 {alert_id}" if alert_id else ""
+        yield self.create_text_message(f"Deeptrace任务已创建并启动，session_id: {session_id}{linked}")
+        result: dict[str, Any] = {
             "session_id": session_id,
             "title": session.get("title", ""),
             "status": "running",
-        })
+        }
+        if alert_id:
+            result["alert_id"] = alert_id
+        yield self.create_json_message(result)

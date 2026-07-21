@@ -1,0 +1,40 @@
+identity:
+  name: get_deeptrace_result
+  author: charles
+  label:
+    en_US: Get DeepTrace Result
+    zh_Hans: 获取Deeptrace结果
+description:
+  human:
+    en_US: Fetch the result of a DeepTrace task by reading the session messages.
+    zh_Hans: 读取Deeptrace会话消息，获取该任务的分析结果。
+  llm: Get the analysis result of a DeepTrace session by session_id. Reads the session's messages and returns the agent's finalized answer text, along with the full message list for reference. If the task is still running there may be no answer yet — check the task status first with the DeepTrace status tool.
+parameters:
+  - name: session_id
+    type: string
+    required: true
+    label:
+      en_US: Session ID
+      zh_Hans: 会话 ID
+    human_description:
+      en_US: The session_id of the DeepTrace task whose result should be fetched, as returned by the create DeepTrace task tool.
+      zh_Hans: 要获取结果的Deeptrace任务 session_id，由创建Deeptrace任务工具返回。
+    llm_description: The session_id of the DeepTrace session to read the result from.
+    form: llm
+
+  - name: latest_only
+    type: boolean
+    required: false
+    label:
+      en_US: Final Answer Only
+      zh_Hans: 仅最终结论
+    human_description:
+      en_US: Return only the last answer (true, default), or concatenate every answer in the session (false).
+      zh_Hans: 仅返回最后一条结论（true，默认），或拼接会话中的全部回复（false）。
+    llm_description: Set true (default) to return only the final answer, or false to return all answers in the session joined together. Use false for multi-turn sessions where earlier answers matter.
+    form: form
+    default: true
+
+extra:
+  python:
+    source: tools/get_deeptrace_result.py
