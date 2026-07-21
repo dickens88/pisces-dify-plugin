@@ -54,6 +54,10 @@ class QueryEntityProfileTool(Tool):
         }
         if monitoring is not None:
             params["monitoring"] = "true" if bool(monitoring) else "false"
+        # A switch, not a tri-state: the API filters on an exact security_tag value,
+        # so "off" means no filter rather than "everything except attackers".
+        if tool_parameters.get("attacker_only"):
+            params["security_tag"] = "attack"
 
         try:
             resp = requests.get(f"{base_url}/entities", headers=headers, params=params, timeout=30, verify=False)
@@ -71,5 +75,7 @@ class QueryEntityProfileTool(Tool):
         total = data.get("total", 0)
         rows = data.get("data", [])
         scope = {"true": "已添加盯防的", "false": "未添加盯防的"}.get(params.get("monitoring"), "")
+        if params.get("security_tag") == "attack":
+            scope += "攻击者"
         yield self.create_text_message(f"{scope}实体画像共 {total} 条，本次返回 {len(rows)} 条。")
         yield self.create_json_message(data)

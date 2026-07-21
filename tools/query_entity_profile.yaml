@@ -8,7 +8,7 @@ description:
   human:
     en_US: Query the entity profile (portrait) for a single entity by its object name, or list/search entity profiles when object_name is omitted.
     zh_Hans: 根据实体名称（object_name）查询该实体的画像信息；不填 object_name 时改为列表搜索，可按是否添加盯防等条件过滤。
-  llm: Query entity profiles. If object_name is given, returns the full profile document for that single entity (basic info, tenant tags, monitoring/trace state and recent related alerts). If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag; leaving monitoring unset returns all entities regardless of monitoring state.
+  llm: Query entity profiles. If object_name is given, returns the full profile document for that single entity (basic info, tenant tags, monitoring/trace state and recent related alerts). If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag, and attacker_only to narrow it to entities tagged as attackers; leaving a filter unset applies no constraint on that dimension. The two filters can be combined, e.g. monitored attackers.
 parameters:
   - name: object_name
     type: string
@@ -32,6 +32,18 @@ parameters:
       en_US: Only used when object_name is omitted (list mode). Set true to return only entities with the monitoring flag added, false to return only entities without it. Leave unset to return all entities regardless of monitoring state.
       zh_Hans: 仅在不填 object_name（列表模式）时生效。设为 true 只返回已添加盯防的实体，设为 false 只返回未添加盯防的实体，不填则返回全部（不按盯防状态过滤）。
     llm_description: List-mode only filter. true = only monitored entities, false = only non-monitored entities, omitted = no filter on monitoring state (all entities).
+    form: llm
+
+  - name: attacker_only
+    type: boolean
+    required: false
+    label:
+      en_US: Attackers Only
+      zh_Hans: 仅攻击者
+    human_description:
+      en_US: Only used when object_name is omitted (list mode). Set true to return only entities tagged as attackers (security_tag=attack). Leave unset to return all entities regardless of security tag.
+      zh_Hans: 仅在不填 object_name（列表模式）时生效。设为 true 只返回被标记为攻击者的实体（security_tag=attack），不填则返回全部（不按安全标记过滤）。
+    llm_description: "List-mode only filter. true = only entities whose security_tag is \"attack\" (attackers). Omitted or false = no filter on security_tag. Note this is a switch, not a tri-state: false does not mean \"non-attackers\", it simply applies no filter. Can be combined with the monitoring filter."
     form: llm
 
   - name: limit
