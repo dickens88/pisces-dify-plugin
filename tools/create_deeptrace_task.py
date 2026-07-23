@@ -37,6 +37,9 @@ class CreateDeeptraceTaskTool(Tool):
         alert_id = (tool_parameters.get("alert_id") or "").strip()
         if alert_id:
             session_body["alert_id"] = alert_id
+        else:
+            # "dify" is a recognized system source so the run shows up there instead.
+            session_body["source"] = "dify"
 
         try:
             resp = requests.post(
