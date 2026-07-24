@@ -31,13 +31,11 @@ class CreateDeeptraceTaskTool(Tool):
             return
 
         # Step 1: Create session
-        session_body: dict[str, Any] = {"title": title or question[:100]}
+        session_body: dict[str, Any] = {"title": title or question[:100], "source": "dify"}
         # alert_id links the session to that alert as a shared investigation.
         alert_id = (tool_parameters.get("alert_id") or "").strip()
         if alert_id:
             session_body["alert_id"] = alert_id
-        else:
-            session_body["source"] = "dify"  # groups it under DeepTrace's system tab
         model = (tool_parameters.get("model") or "").strip()
         if model:
             # Set here too so session.model (shown in the UI) matches the run.
