@@ -6,9 +6,9 @@ identity:
     zh_Hans: 查询值班经理清单
 description:
   human:
-    en_US: Query the duty roster (duty manager and/or tracing specialist) from a given start date onward, or look up who is on duty right now.
-    zh_Hans: 查询从指定起始时间起的排班清单（值班经理、溯源专员）；也可查看当前时间的值班人员。
-  llm: Query the shift-manager duty roster. By default returns roster entries (manager_user, backup_user, period_start, period_end, role, note, etc.) whose duty period ends on or after the given start_date (no upper bound, so future-scheduled shifts are included), covering both roles - "manager" (值班经理, duty manager) and "tracer" (溯源专员, tracing specialist). Set current_only=true to instead return the shifts covering the current date for both roles.
+    en_US: Query the duty roster from a given start date onward, or look up who is on duty right now.
+    zh_Hans: 查询从指定起始时间起的排班清单；也可查看当前时间的值班人员。
+  llm: Query the duty roster. By default returns roster entries (manager_user, backup_user, period_start, period_end, role, note, etc.) whose duty period ends on or after the given start_date (no upper bound, so future-scheduled shifts are included), covering all roles configured in the duty list. Set current_only=true to instead return the shifts covering the current date for all roles.
 parameters:
   - name: start_date
     type: string
@@ -29,9 +29,9 @@ parameters:
       en_US: Current Duty Only
       zh_Hans: 只看当前值班人员
     human_description:
-      en_US: When enabled, return only the people on shift right now (both duty manager and tracing specialist) instead of the roster list.
-      zh_Hans: 开启后只返回当前时间正在值班的人员（值班经理和溯源专员），而非整个排班清单。
-    llm_description: If true, return only the current on-duty shifts for both roles (the people covering the current date). Default false returns the roster list.
+      en_US: When enabled, return only the people on shift right now (all roles) instead of the roster list.
+      zh_Hans: 开启后只返回当前时间正在值班的人员（所有角色），而非整个排班清单。
+    llm_description: If true, return only the current on-duty shifts for all roles (the people covering the current date). Default false returns the roster list.
     form: form
     default: false
 
