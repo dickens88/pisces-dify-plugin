@@ -24,7 +24,7 @@ parameters:
 
   - name: entity_type
     type: select
-    required: false
+    required: true
     label:
       en_US: Entity Type
       zh_Hans: 实体类型
