@@ -84,6 +84,10 @@ class UpdateEntityProfileTool(Tool):
             yield self.create_text_message("未提供任何要更新的字段。")
             return
 
+        entity_type = tool_parameters.get("entity_type")
+        if entity_type is not None and str(entity_type).strip():
+            body["entity_type"] = str(entity_type).strip()
+
         url = f"{base_url}/entities/{quote(str(object_name), safe='')}"
         try:
             resp = requests.patch(
@@ -98,7 +102,9 @@ class UpdateEntityProfileTool(Tool):
             return
 
         if resp.status_code == 404:
-            yield self.create_text_message(f"未找到实体 {object_name} 的画像，无法更新。")
+            yield self.create_text_message(
+                f"未找到实体 {object_name} 的画像，且未能新建，无法更新。"
+            )
             return
         if not resp.ok:
             resp_body = resp.json() if resp.content else {}

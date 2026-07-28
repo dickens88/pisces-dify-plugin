@@ -6,9 +6,9 @@ identity:
     zh_Hans: 更新实体画像
 description:
   human:
-    en_US: Update an entity profile via PATCH /entities/<object_name>. If the entity has no profile yet, the server looks it up in Dify and creates one only when Dify knows the tenant.
-    zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像。若该实体尚无画像，服务端会先到 Dify 查询，只有查到时才创建画像并写入本次更新。
-  llm: Partially update an entity profile identified by object_name. Only the fields you provide are changed. Appends response dispositions and behavior records, and can write any other MongoDB field via extra_fields. If no profile exists yet, the server resolves the tenant from Dify first; if Dify does not know the name, nothing is written and the call fails with "entity not found". To change monitoring or trace state, use the add_monitoring / add_trace tools instead.
+    en_US: Update an entity profile via PATCH /entities/<object_name>. If the entity has no profile yet, the server looks it up in Dify and otherwise creates a minimal profile of the given entity_type.
+    zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像。若该实体尚无画像，服务端会先到 Dify 查询；查不到时按 entity_type 新建一条最小画像记录，再写入本次更新。
+  llm: Partially update an entity profile identified by object_name. Only the fields you provide are changed. Appends response dispositions and behavior records, and can write any other MongoDB field via extra_fields. If no profile exists yet, the server resolves the tenant from Dify first, and failing that creates a minimal profile of the given entity_type (tenant by default) so the update still lands. To change monitoring or trace state, use the add_monitoring / add_trace tools instead.
 parameters:
   - name: object_name
     type: string
@@ -21,6 +21,36 @@ parameters:
       zh_Hans: 要更新的实体名称，例如租户名、域账号或 IP 地址。
     llm_description: The object_name identifying the entity profile to update.
     form: llm
+
+  - name: entity_type
+    type: select
+    required: false
+    label:
+      en_US: Entity Type
+      zh_Hans: 实体类型
+    human_description:
+      en_US: "The kind of entity. Only used when the entity has no profile yet — the server then creates a minimal profile of this type and applies the update to it. Defaults to tenant."
+      zh_Hans: "实体类型。仅在该实体尚无画像时生效——服务端会据此新建一条最小画像记录，再写入本次更新。默认为 tenant（租户）。"
+    llm_description: "The kind of entity: tenant (a customer/tenant), service (a cloud service), ip (an IP address), host (a machine). Use the English value as-is. It only matters when the entity has no profile yet, in which case the server creates a minimal profile of this type before applying the update; it never changes the type of an existing profile. Defaults to tenant, so set it explicitly whenever object_name is not a tenant."
+    form: llm
+    default: tenant
+    options:
+      - value: tenant
+        label:
+          en_US: tenant
+          zh_Hans: 租户
+      - value: service
+        label:
+          en_US: service
+          zh_Hans: 云服务
+      - value: ip
+        label:
+          en_US: ip
+          zh_Hans: IP
+      - value: host
+        label:
+          en_US: host
+          zh_Hans: 主机
 
   - name: responses
     type: string
