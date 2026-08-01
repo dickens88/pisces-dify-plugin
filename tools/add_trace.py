@@ -28,6 +28,7 @@ class AddTraceTool(Tool):
             return
 
         object_name = tool_parameters["object_name"]
+        clue = str(tool_parameters.get("clue") or "").strip()
         headers = {"Authorization": f"Bearer {token}"}
         encoded = quote(str(object_name), safe="")
 
@@ -66,11 +67,13 @@ class AddTraceTool(Tool):
             )
             return
 
-        # 3) No active trace — add one and set the status to waiting.
+        # 3) No active trace — start one. 'running' is what the console sends: it is the only
+        # start state the API accepts, and it is what hands the task to Dify and notifies the
+        # tracer on duty. The clue rides along into that notice.
         try:
             put_resp = requests.put(
                 f"{base_url}/entities/{encoded}/trace",
-                json={"status": "waiting"},
+                json={"status": "running", "clue": clue},
                 headers=headers,
                 timeout=30,
                 verify=False,
@@ -86,5 +89,5 @@ class AddTraceTool(Tool):
             return
 
         data = put_resp.json()
-        yield self.create_text_message(f"已为租户 {object_name} 添加溯源任务（状态: waiting）。")
+        yield self.create_text_message(f"已为租户 {object_name} 添加溯源任务（状态: 溯源中），已通知值班溯源专员。")
         yield self.create_json_message(data)
