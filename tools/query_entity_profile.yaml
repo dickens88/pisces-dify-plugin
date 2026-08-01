@@ -6,9 +6,9 @@ identity:
     zh_Hans: 查询实体画像
 description:
   human:
-    en_US: Query the entity profile (portrait) for a single entity by its object name, or list/search entity profiles when object_name is omitted.
-    zh_Hans: 根据实体名称（object_name）查询该实体的画像信息；不填 object_name 时改为列表搜索，可按是否添加盯防等条件过滤。
-  llm: Query entity profiles. If object_name is given, returns the full profile document for that single entity (basic info, tenant tags, monitoring/trace state and recent related alerts). If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag, and attacker_only to narrow it to entities tagged as attackers; leaving a filter unset applies no constraint on that dimension. The two filters can be combined, e.g. monitored attackers.
+    en_US: Query the entity profile (portrait) for a single entity by its object name, or list/search entity profiles when object_name is omitted. A tenant may also be looked up by its domain id.
+    zh_Hans: 根据实体名称（object_name）查询该实体的画像信息；租户也可以直接用 domainid 查询。不填 object_name 时改为列表搜索，可按是否添加盯防等条件过滤。
+  llm: Query entity profiles. If object_name is given, returns the full profile document for that single entity (basic info, tenant tags, monitoring/trace state and recent related alerts). Tenant profiles are keyed by the tenant name, but a domain id or a partial name also works — it is resolved through the same keyword search the console's search box uses, and the answer names the entity it resolved to. When the input matches several entities their names are listed instead, so retry with one of them. If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag, and attacker_only to narrow it to entities tagged as attackers; leaving a filter unset applies no constraint on that dimension. The two filters can be combined, e.g. monitored attackers.
 parameters:
   - name: object_name
     type: string
@@ -17,9 +17,9 @@ parameters:
       en_US: Object Name
       zh_Hans: 实体名称
     human_description:
-      en_US: The object name of the entity to query, e.g. a tenant name, domain id or IP address. Leave empty to list/search profiles instead.
-      zh_Hans: 要查询的实体名称，例如租户名、域账号或 IP 地址。留空则改为列表搜索多个实体。
-    llm_description: The unique object_name identifying the entity to look up (e.g. a tenant name, or an IP/domain id). Omit this to search/list multiple entity profiles instead of fetching one.
+      en_US: The entity to query, e.g. a tenant name, a tenant domain id or an IP address. A domain id or a partial tenant name is resolved to the tenant automatically. Leave empty to list/search profiles instead.
+      zh_Hans: 要查询的实体，例如租户名、租户 domainid 或 IP 地址。传 domainid 或租户名的一部分时会自动解析到对应租户。留空则改为列表搜索多个实体。
+    llm_description: The entity to look up — a tenant name, a tenant domain id, or an IP address. An exact object name is matched first; a domain id or partial name falls back to keyword search and resolves to the matching entity. Omit this to search/list multiple entity profiles instead of fetching one.
     form: llm
 
   - name: monitoring
