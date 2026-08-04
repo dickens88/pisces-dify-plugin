@@ -51,6 +51,8 @@ tools:
   - tools/update_entity_profile.yaml
   - tools/add_monitoring.yaml
   - tools/add_trace.yaml
+  - tools/query_threat_intel.yaml
+  - tools/add_threat_intel.yaml
 extra:
   python:
     source: provider/pisces.py

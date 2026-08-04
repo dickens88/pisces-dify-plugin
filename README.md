@@ -71,6 +71,40 @@
 
 返回：累积的文本输出和事件列表。
 
+### 查询威胁情报
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `feed` | string | ❌ | 数据源（Feed ID）过滤，多个用英文逗号分隔 |
+| `tag` | string | ❌ | 标签过滤，多个用英文逗号分隔，命中任意一个即返回 |
+| `days` | number | ❌ | 只返回最近 N 天更新过（`last_seen`）的情报；设置了 `start_time` 时忽略 |
+| `start_time` | string | ❌ | 更新时间下界，ISO 8601（如 `2026-07-01T00:00:00Z`） |
+| `end_time` | string | ❌ | 更新时间上界，ISO 8601 |
+| `page` | number | ❌ | 页码，从 1 开始，默认 1 |
+| `limit` | number | ❌ | 每页数量，默认 50，服务端上限 500 |
+
+对应接口 `GET /intel/indicators`。返回：情报指标列表（`type` / `value` / `tlp` / `confidence` / `tags` / `actor` / `malware` / `sources` / `first_seen` / `last_seen` / `expires`）和总数；第一页额外返回 `stats` 分面统计，其中 `stats.feeds` 和 `stats.tags` 可用于发现可选的数据源和标签取值。
+
+### 添加威胁情报
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `value` | string | ✅ | 情报值，一行一条或英文逗号分隔的多条；支持 defang 形式（`evil[.]com`、`hxxp://`） |
+| `source` | string | ✅ | 数据源，同时作为 Feed ID，不能含英文逗号 |
+| `type` | select | ❌ | `ipv4` / `domain` / `url` / `sha256` / `md5` / `email`，留空自动识别 |
+| `tags` | string | ❌ | 标签，英文逗号分隔，最多 20 个，统一小写 |
+| `confidence` | number | ❌ | 置信度 0-100，默认 50（≥75 为高置信度） |
+| `tlp` | select | ❌ | `CLEAR` / `GREEN` / `AMBER`（默认）/ `AMBER_STRICT` / `RED` |
+| `actor` | string | ❌ | 威胁组织 / APT 团伙 |
+| `malware` | string | ❌ | 恶意软件家族 |
+| `phase` | select | ❌ | 攻击链阶段：`Reconnaissance` / `Initial Access` / `Execution` / `Persistence` / `C2` / `Exfiltration` / `Impact` |
+| `expire_days` | number | ❌ | 有效期天数，默认取平台配置（90 天） |
+| `ref_url` | string | ❌ | 参考链接 |
+| `evidence` | string | ❌ | 佐证信息 |
+| `note` | string | ❌ | 备注 |
+
+对应接口 `POST /intel/indicators`。多个 `value` 共用同一组属性，一次批量提交。相同值在**不同**数据源下会合并进同一条情报（`sources` 数组各存一份），在**相同**数据源下则覆盖该源的上次上报。返回 `created` / `merged` / `skipped` 计数。
+
 ## 本地调试
 
 ```bash

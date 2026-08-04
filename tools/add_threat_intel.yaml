@@ -1,0 +1,248 @@
+identity:
+  name: add_threat_intel
+  author: charles
+  label:
+    en_US: Add Threat Intelligence
+    zh_Hans: 添加威胁情报
+description:
+  human:
+    en_US: Add one or more indicators to the threat intelligence library, with source, tags, confidence and TLP.
+    zh_Hans: 向威胁情报库新增一条或多条情报指标，可指定数据源、标签、置信度、TLP 等属性。
+  llm: Add indicators (IOCs) to the threat intelligence library. Accepts one value or a batch of values sharing the same metadata. Values are auto-classified into ipv4 / domain / url / sha256 / md5 / email, and defanged forms such as "evil[.]com" or "hxxp://" are restored automatically. An indicator already reported by another feed is merged rather than duplicated. Returns counts of created / merged / skipped records.
+parameters:
+  - name: value
+    type: string
+    required: true
+    label:
+      en_US: Indicator Value(s)
+      zh_Hans: 情报值
+    human_description:
+      en_US: One indicator per line, or several separated by commas. IP, domain, URL, MD5, SHA256 or email.
+      zh_Hans: 情报值，支持一行一条或用英文逗号分隔的多条。可为 IP、域名、URL、MD5、SHA256、邮箱。
+    llm_description: The indicator value(s) to add. Provide one per line for a batch, or a single value. Supported kinds are IPv4, domain, URL, MD5, SHA256 and email address. Defanged values like "evil[.]com" or "hxxp://bad.site" are accepted and normalized. Values that cannot be recognized as one of the supported kinds are skipped by the server.
+    form: llm
+
+  - name: source
+    type: string
+    required: true
+    label:
+      en_US: Source
+      zh_Hans: 数据源
+    human_description:
+      en_US: Where this intelligence came from; it doubles as the feed id. Commas are not allowed.
+      zh_Hans: 情报来源，同时作为该情报的数据源（Feed ID）。不能包含英文逗号。
+    llm_description: The source of this intelligence, which doubles as its feed id, e.g. "manual", "vendor-report", "abuse_ch". Required. Re-adding the same value under the same source updates that source's entry instead of creating a duplicate.
+    form: llm
+
+  - name: type
+    type: select
+    required: false
+    label:
+      en_US: Indicator Type
+      zh_Hans: 情报类型
+    human_description:
+      en_US: Indicator type. Leave empty to let the server detect it from the value.
+      zh_Hans: 情报类型。留空则由服务端根据值自动识别。
+    llm_description: "Indicator type: ipv4, domain, url, sha256, md5 or email. Leave empty to let the server auto-detect it from the value, which is usually correct. A declared type is verified against the value and the record is skipped on mismatch."
+    form: form
+    options:
+      - value: ipv4
+        label:
+          en_US: ipv4
+          zh_Hans: ipv4
+      - value: domain
+        label:
+          en_US: domain
+          zh_Hans: domain
+      - value: url
+        label:
+          en_US: url
+          zh_Hans: url
+      - value: sha256
+        label:
+          en_US: sha256
+          zh_Hans: sha256
+      - value: md5
+        label:
+          en_US: md5
+          zh_Hans: md5
+      - value: email
+        label:
+          en_US: email
+          zh_Hans: email
+
+  - name: tags
+    type: string
+    required: false
+    label:
+      en_US: Tags
+      zh_Hans: 标签
+    human_description:
+      en_US: Tags for this intelligence, separated by commas. Up to 20, stored lowercase.
+      zh_Hans: 情报标签，多个用英文逗号分隔。最多 20 个，统一转为小写存储。
+    llm_description: Comma-separated tags describing this intelligence, e.g. "ransomware,c2,apt41". Up to 20 tags; they are lowercased by the server.
+    form: llm
+
+  - name: confidence
+    type: number
+    required: false
+    label:
+      en_US: Confidence
+      zh_Hans: 置信度
+    human_description:
+      en_US: Confidence score 0-100 (default 50). 75 and above counts as high confidence.
+      zh_Hans: 置信度 0-100（默认 50）。75 及以上算高置信度。
+    llm_description: Confidence score from 0 to 100, default 50. Values of 75 or above are treated as high confidence by the platform.
+    form: form
+    default: 50
+
+  - name: tlp
+    type: select
+    required: false
+    label:
+      en_US: TLP
+      zh_Hans: TLP 等级
+    human_description:
+      en_US: Traffic Light Protocol sharing level (default AMBER).
+      zh_Hans: TLP 情报共享等级（默认 AMBER）。
+    llm_description: "Traffic Light Protocol level, from least to most restrictive: CLEAR, GREEN, AMBER, AMBER_STRICT, RED. Default AMBER. When several sources report the same indicator the strictest level wins."
+    form: form
+    default: AMBER
+    options:
+      - value: CLEAR
+        label:
+          en_US: CLEAR
+          zh_Hans: CLEAR
+      - value: GREEN
+        label:
+          en_US: GREEN
+          zh_Hans: GREEN
+      - value: AMBER
+        label:
+          en_US: AMBER
+          zh_Hans: AMBER
+      - value: AMBER_STRICT
+        label:
+          en_US: AMBER_STRICT
+          zh_Hans: AMBER_STRICT
+      - value: RED
+        label:
+          en_US: RED
+          zh_Hans: RED
+
+  - name: actor
+    type: string
+    required: false
+    label:
+      en_US: Threat Actor
+      zh_Hans: 威胁组织
+    human_description:
+      en_US: The threat actor or APT group this indicator is attributed to.
+      zh_Hans: 该情报归属的威胁组织 / APT 团伙名称。
+    llm_description: Name of the threat actor or APT group this indicator is attributed to, e.g. "APT41". Leave empty if unattributed.
+    form: llm
+
+  - name: malware
+    type: string
+    required: false
+    label:
+      en_US: Malware Family
+      zh_Hans: 恶意软件家族
+    human_description:
+      en_US: The malware family associated with this indicator.
+      zh_Hans: 该情报关联的恶意软件家族名称。
+    llm_description: Name of the malware family associated with this indicator, e.g. "Cobalt Strike", "Emotet". Leave empty if unknown.
+    form: llm
+
+  - name: phase
+    type: select
+    required: false
+    label:
+      en_US: Kill Chain Phase
+      zh_Hans: 攻击阶段
+    human_description:
+      en_US: The kill chain phase this indicator belongs to.
+      zh_Hans: 该情报所处的攻击链阶段。
+    llm_description: "Kill chain phase this indicator belongs to: Reconnaissance, Initial Access, Execution, Persistence, C2, Exfiltration or Impact."
+    form: form
+    options:
+      - value: Reconnaissance
+        label:
+          en_US: Reconnaissance
+          zh_Hans: 侦察
+      - value: Initial Access
+        label:
+          en_US: Initial Access
+          zh_Hans: 初始访问
+      - value: Execution
+        label:
+          en_US: Execution
+          zh_Hans: 执行
+      - value: Persistence
+        label:
+          en_US: Persistence
+          zh_Hans: 持久化
+      - value: C2
+        label:
+          en_US: C2
+          zh_Hans: 命令控制
+      - value: Exfiltration
+        label:
+          en_US: Exfiltration
+          zh_Hans: 数据窃取
+      - value: Impact
+        label:
+          en_US: Impact
+          zh_Hans: 危害影响
+
+  - name: expire_days
+    type: number
+    required: false
+    label:
+      en_US: Expire After Days
+      zh_Hans: 有效期天数
+    human_description:
+      en_US: Days until this intelligence expires. Leave empty to use the platform default (90 days).
+      zh_Hans: 情报有效期天数。留空则使用平台默认值（90 天）。
+    llm_description: Number of days until this intelligence expires. Leave empty to use the platform default, normally 90 days.
+    form: form
+
+  - name: ref_url
+    type: string
+    required: false
+    label:
+      en_US: Reference URL
+      zh_Hans: 参考链接
+    human_description:
+      en_US: Link to the report or page this intelligence came from.
+      zh_Hans: 情报出处的报告或页面链接。
+    llm_description: URL of the report, advisory or page this intelligence came from.
+    form: llm
+
+  - name: evidence
+    type: string
+    required: false
+    label:
+      en_US: Evidence
+      zh_Hans: 佐证信息
+    human_description:
+      en_US: Supporting evidence for this intelligence, such as the quoted sentence from a report.
+      zh_Hans: 支撑该情报的佐证信息，例如报告中的原文片段。
+    llm_description: Supporting evidence for this indicator, such as the sentence it was quoted from or the observation that produced it.
+    form: llm
+
+  - name: note
+    type: string
+    required: false
+    label:
+      en_US: Note
+      zh_Hans: 备注
+    human_description:
+      en_US: Free-form note attached to this source's entry.
+      zh_Hans: 附加在该数据源记录上的自由备注。
+    llm_description: Free-form note attached to this source's entry for the indicator.
+    form: llm
+
+extra:
+  python:
+    source: tools/add_threat_intel.py

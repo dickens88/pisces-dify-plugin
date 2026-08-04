@@ -1,0 +1,101 @@
+identity:
+  name: query_threat_intel
+  author: charles
+  label:
+    en_US: Query Threat Intelligence
+    zh_Hans: 查询威胁情报
+description:
+  human:
+    en_US: Query the threat intelligence indicator library, filtered by feed, tag and last-updated time.
+    zh_Hans: 查询威胁情报指标库，支持按数据源（Feed）、标签、更新时间过滤，并支持分页。
+  llm: Query the threat intelligence (CTI) indicator library. Filter by feed (data source), tag, and last-updated time range, with pagination. Returns a paginated list of indicators (type, value, tlp, confidence, tags, actor, malware, sources, first_seen/last_seen, expires) plus the total count; the first page also carries a "stats" facet listing all available feed ids and tag names with their counts.
+parameters:
+  - name: feed
+    type: string
+    required: false
+    label:
+      en_US: Feed
+      zh_Hans: 数据源
+    human_description:
+      en_US: Filter by intelligence feed id. Separate multiple ids with commas. Leave empty for all feeds.
+      zh_Hans: 按情报数据源（Feed ID）过滤，多个用英文逗号分隔。留空则不限数据源。
+    llm_description: Comma-separated list of feed ids (data sources) to filter by, e.g. "manual,abuse_ch". Leave empty to query all feeds. Available feed ids can be discovered from the "stats.feeds" facet returned on the first page.
+    form: llm
+
+  - name: tag
+    type: string
+    required: false
+    label:
+      en_US: Tags
+      zh_Hans: 标签
+    human_description:
+      en_US: Filter by tag. Separate multiple tags with commas; an indicator matches if it carries any of them.
+      zh_Hans: 按标签过滤，多个用英文逗号分隔，命中任意一个即返回。留空则不限标签。
+    llm_description: Comma-separated list of tags to filter by, e.g. "ransomware,c2". An indicator matches if it carries any one of the tags. Tags are lowercase. Available tags can be discovered from the "stats.tags" facet returned on the first page.
+    form: llm
+
+  - name: days
+    type: number
+    required: false
+    label:
+      en_US: Updated Within Days
+      zh_Hans: 最近更新天数
+    human_description:
+      en_US: Only return indicators last seen within the past N days. Ignored when Start Time is set.
+      zh_Hans: 只返回最近 N 天内更新过（last_seen）的情报。设置了「开始时间」时本项被忽略。
+    llm_description: Only return indicators whose last_seen falls within the past N days. Convenient shorthand for start_time; ignored if start_time is provided. Leave empty for no time filter.
+    form: llm
+
+  - name: start_time
+    type: string
+    required: false
+    label:
+      en_US: Start Time
+      zh_Hans: 开始时间
+    human_description:
+      en_US: Earliest last-updated time, ISO 8601, e.g. 2026-07-01T00:00:00Z.
+      zh_Hans: 更新时间下界，ISO 8601 格式，例如 2026-07-01T00:00:00Z。
+    llm_description: Lower bound of the last-updated (last_seen) time range, ISO 8601 format such as "2026-07-01T00:00:00Z". Overrides the days parameter.
+    form: llm
+
+  - name: end_time
+    type: string
+    required: false
+    label:
+      en_US: End Time
+      zh_Hans: 结束时间
+    human_description:
+      en_US: Latest last-updated time, ISO 8601, e.g. 2026-08-01T00:00:00Z.
+      zh_Hans: 更新时间上界，ISO 8601 格式，例如 2026-08-01T00:00:00Z。
+    llm_description: Upper bound of the last-updated (last_seen) time range, ISO 8601 format such as "2026-08-01T00:00:00Z". Leave empty for "up to now".
+    form: llm
+
+  - name: page
+    type: number
+    required: false
+    label:
+      en_US: Page
+      zh_Hans: 页码
+    human_description:
+      en_US: Page number, starting at 1 (default 1).
+      zh_Hans: 页码，从 1 开始（默认 1）。
+    llm_description: Page number for pagination, starting at 1, default 1.
+    form: form
+    default: 1
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Number of indicators per page, default 50, maximum 500.
+      zh_Hans: 每页返回的情报条数，默认 50，最大 500。
+    llm_description: Number of indicator records per page, default 50, capped at 500 by the server.
+    form: form
+    default: 50
+
+extra:
+  python:
+    source: tools/query_threat_intel.py
