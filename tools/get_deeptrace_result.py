@@ -2,14 +2,10 @@ from collections.abc import Generator
 from typing import Any
 from urllib.parse import quote
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 # Streaming deltas (assistant_chunk/thinking_chunk) are never persisted, so the
 # stored assistant messages are the finalized answers.
@@ -18,26 +14,11 @@ ANSWER_KIND = "assistant"
 
 class GetDeeptraceResultTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
         session_id = tool_parameters["session_id"]
-        url = f"{base_url}/deeptrace/sessions/{quote(str(session_id), safe='')}/messages"
+        path = f"/deeptrace/sessions/{quote(str(session_id), safe='')}/messages"
         try:
-            resp = requests.get(
-                url,
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=60,
-                verify=False,
-            )
-        except requests.exceptions.RequestException as e:
+            resp = pisces_request("GET", path, self.runtime.credentials, timeout=60)
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
@@ -45,9 +26,9 @@ class GetDeeptraceResultTool(Tool):
             yield self.create_text_message(f"未找到Deeptrace会话 {session_id}。")
             return
         if not resp.ok:
-            body = resp.json() if resp.content else {}
-            msg = body.get("error_message") or body.get("error") or resp.text
-            yield self.create_text_message(f"获取Deeptrace结果失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"获取Deeptrace结果失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         messages = (resp.json() or {}).get("data") or []

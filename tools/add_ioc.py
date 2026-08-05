@@ -1,28 +1,14 @@
 from collections.abc import Generator
 from typing import Any
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 
 class AddIocTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
         incident_id = tool_parameters["incident_id"]
 
         body: dict[str, Any] = {
@@ -35,24 +21,20 @@ class AddIocTool(Tool):
             if value is not None and str(value).strip():
                 body[optional] = value
 
-        url = f"{base_url}/iocs"
         try:
-            resp = requests.post(
-                url,
+            resp = pisces_request(
+                "POST", "/iocs", self.runtime.credentials,
                 params={"incident_id": incident_id},
                 json=body,
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=30,
-                verify=False,
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
         if not resp.ok:
-            resp_body = resp.json() if resp.content else {}
-            msg = resp_body.get("error_message") or resp.text
-            yield self.create_text_message(f"添加 IOC 失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"添加 IOC 失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         data = resp.json()

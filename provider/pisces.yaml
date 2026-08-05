@@ -37,8 +37,8 @@ credentials_for_provider:
       en_US: Password
       zh_Hans: 密码
     help:
-      en_US: Your Pisces platform password. The plugin automatically obtains a fresh JWT token on each request.
-      zh_Hans: 双鱼座平台的登录密码。插件每次请求时自动获取新 Token，无需手动维护。
+      en_US: Your Pisces platform password. The plugin logs in for a JWT token and reuses it until it expires, so there is no token to maintain.
+      zh_Hans: 双鱼座平台的登录密码。插件自动登录获取 Token 并在其有效期内复用，无需手动维护。
 tools:
   - tools/query_iocs.yaml
   - tools/add_ioc.yaml

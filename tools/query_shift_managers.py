@@ -2,14 +2,12 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from provider.pisces import PiscesError, error_message, pisces_request
 
-from provider.pisces import get_token
+ROSTER_PATH = "/shift-manager/roster"
 
 
 def _parse_date(value: Any):
@@ -30,39 +28,23 @@ def _role_label(role: Any) -> str:
 
 class QueryShiftManagersTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"{base_url}/shift-manager/roster"
-
         current_only = bool(tool_parameters.get("current_only"))
 
         # ── current duty shifts for both roles (the shifts covering "now") ──
         if current_only:
             try:
-                resp = requests.get(
-                    url,
+                resp = pisces_request(
+                    "GET", ROSTER_PATH, self.runtime.credentials,
                     params={"action": "current_shift"},
-                    headers=headers,
-                    timeout=30,
-                    verify=False,
                 )
-            except requests.exceptions.RequestException as e:
+            except PiscesError as e:
                 yield self.create_text_message(f"请求失败: {e}")
                 return
 
             if not resp.ok:
-                body = resp.json() if resp.content else {}
-                msg = body.get("error_message") or resp.text
-                yield self.create_text_message(f"查询当前值班人员失败（{resp.status_code}）: {msg}")
+                yield self.create_text_message(
+                    f"查询当前值班人员失败（{resp.status_code}）: {error_message(resp)}"
+                )
                 return
 
             data = resp.json()
@@ -85,29 +67,25 @@ class QueryShiftManagersTool(Tool):
         win_start = _parse_date(tool_parameters.get("start_date")) or (today - timedelta(days=30))
 
         try:
-            resp = requests.get(
-                url,
+            resp = pisces_request(
+                "GET", ROSTER_PATH, self.runtime.credentials,
                 params={"limit": 1000, "offset": 0},
-                headers=headers,
-                timeout=30,
-                verify=False,
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
         if not resp.ok:
-            body = resp.json() if resp.content else {}
-            msg = body.get("error_message") or resp.text
-            yield self.create_text_message(f"查询排班清单失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"查询排班清单失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         data = resp.json()
         rosters = data.get("data", [])
 
-        # The roster endpoint has no server-side time filter, so keep only the
-        # rosters whose duty period ends on or after win_start (no upper bound,
-        # so future-scheduled shifts are included too).
+        # The roster endpoint has no server-side time filter, so keep the rosters ending on
+        # or after win_start. No upper bound, so future-scheduled shifts are included too.
         filtered = []
         for r in rosters:
             pe = _parse_date(r.get("period_end"))

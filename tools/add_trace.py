@@ -2,14 +2,10 @@ from collections.abc import Generator
 from typing import Any
 from urllib.parse import quote
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 # Trace states that mean a trace already exists — 溯源中 / 已完成.
 EXISTING_TRACE_STATUSES = ("running", "complete")
@@ -17,30 +13,14 @@ EXISTING_TRACE_STATUSES = ("running", "complete")
 
 class AddTraceTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
         object_name = tool_parameters["object_name"]
         clue = str(tool_parameters.get("clue") or "").strip()
-        headers = {"Authorization": f"Bearer {token}"}
         encoded = quote(str(object_name), safe="")
 
         # 1) Look up the profile first to inspect the current trace status.
         try:
-            resp = requests.get(
-                f"{base_url}/entities/{encoded}",
-                headers=headers,
-                timeout=30,
-                verify=False,
-            )
-        except requests.exceptions.RequestException as e:
+            resp = pisces_request("GET", f"/entities/{encoded}", self.runtime.credentials)
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
@@ -48,9 +28,9 @@ class AddTraceTool(Tool):
             yield self.create_text_message(f"未找到租户 {object_name} 的实体画像，无法添加溯源。")
             return
         if not resp.ok:
-            body = resp.json() if resp.content else {}
-            msg = body.get("error_message") or resp.text
-            yield self.create_text_message(f"查询实体画像失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"查询实体画像失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         profile = (resp.json() or {}).get("data") or {}
@@ -67,25 +47,21 @@ class AddTraceTool(Tool):
             )
             return
 
-        # 3) No active trace — start one. 'running' is what the console sends: it is the only
-        # start state the API accepts, and it is what hands the task to Dify and notifies the
-        # tracer on duty. The clue rides along into that notice.
+        # 3) No active trace — start one. 'running' is the only start state the API accepts;
+        # it hands the task to Dify and notifies the tracer on duty, with the clue attached.
         try:
-            put_resp = requests.put(
-                f"{base_url}/entities/{encoded}/trace",
+            put_resp = pisces_request(
+                "PUT", f"/entities/{encoded}/trace", self.runtime.credentials,
                 json={"status": "running", "clue": clue},
-                headers=headers,
-                timeout=30,
-                verify=False,
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
         if not put_resp.ok:
-            body = put_resp.json() if put_resp.content else {}
-            msg = body.get("error_message") or put_resp.text
-            yield self.create_text_message(f"添加溯源失败（{put_resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"添加溯源失败（{put_resp.status_code}）: {error_message(put_resp)}"
+            )
             return
 
         data = put_resp.json()

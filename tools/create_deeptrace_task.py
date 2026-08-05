@@ -1,36 +1,20 @@
 from collections.abc import Generator
 from typing import Any
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 
 class CreateDeeptraceTaskTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
-        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
         title = (tool_parameters.get("title") or "").strip()
         question = (tool_parameters.get("question") or "").strip()
         if not question:
             yield self.create_text_message("question 为必填参数")
             return
 
-        # Step 1: Create session
         session_body: dict[str, Any] = {"title": title or question[:100], "source": "dify"}
         # alert_id links the session to that alert as a shared investigation.
         alert_id = (tool_parameters.get("alert_id") or "").strip()
@@ -42,21 +26,19 @@ class CreateDeeptraceTaskTool(Tool):
             session_body["model"] = model
 
         try:
-            resp = requests.post(
-                f"{base_url}/deeptrace/sessions",
+            resp = pisces_request(
+                "POST", "/deeptrace/sessions", self.runtime.credentials,
                 json=session_body,
-                headers=headers,
                 timeout=15,
-                verify=False,
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"创建会话失败: {e}")
             return
 
         if not resp.ok:
-            body = resp.json() if resp.content else {}
-            msg = body.get("error_message") or body.get("error") or resp.text
-            yield self.create_text_message(f"创建会话失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"创建会话失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         session = resp.json().get("data", {})
@@ -65,27 +47,25 @@ class CreateDeeptraceTaskTool(Tool):
             yield self.create_text_message(f"创建会话成功但未返回 session_id: {resp.text}")
             return
 
-        # Step 2: Start run (send question)
+        # Posting the question is what actually starts the run.
         msg_body: dict[str, Any] = {"text": question}
         if model:
             msg_body["model"] = model
 
         try:
-            resp2 = requests.post(
-                f"{base_url}/deeptrace/sessions/{session_id}/messages",
+            resp2 = pisces_request(
+                "POST", f"/deeptrace/sessions/{session_id}/messages", self.runtime.credentials,
                 json=msg_body,
-                headers=headers,
                 timeout=15,
-                verify=False,
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"会话已创建（{session_id}）但启动任务失败: {e}")
             return
 
         if not resp2.ok:
-            body2 = resp2.json() if resp2.content else {}
-            msg2 = body2.get("error_message") or body2.get("error") or resp2.text
-            yield self.create_text_message(f"会话已创建（{session_id}）但启动任务失败（{resp2.status_code}）: {msg2}")
+            yield self.create_text_message(
+                f"会话已创建（{session_id}）但启动任务失败（{resp2.status_code}）: {error_message(resp2)}"
+            )
             return
 
         linked = f"，已关联告警 {alert_id}" if alert_id else ""

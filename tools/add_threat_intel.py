@@ -1,25 +1,18 @@
 from collections.abc import Generator
 from typing import Any
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 # Item fields passed through to the API untouched apart from emptiness checks.
 _PASSTHROUGH = ("type", "actor", "malware", "phase", "ref_url", "evidence", "note")
 
 
 def split_values(raw: Any) -> list[str]:
-    """One or many IOC values into a clean list.
-
-    Newlines always separate. Commas separate too, but not inside a URL — a
-    query string may legitimately contain one.
-    """
+    """One or many IOC values into a clean list. Newlines always separate; commas do too,
+    except inside a URL, whose query string may legitimately contain one."""
     if isinstance(raw, list):
         candidates = [str(v) for v in raw]
     else:
@@ -37,16 +30,6 @@ def split_values(raw: Any) -> list[str]:
 
 class AddThreatIntelTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
         values = split_values(tool_parameters.get("value"))
         if not values:
             yield self.create_text_message("未提供有效的情报值（value）。")
@@ -80,23 +63,16 @@ class AddThreatIntelTool(Tool):
         # Every value shares the same metadata; the API takes them as one batch.
         body = {"source": source, "items": [dict(item, value=v) for v in values]}
 
-        url = f"{base_url}/intel/indicators"
         try:
-            resp = requests.post(
-                url,
-                json=body,
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=30,
-                verify=False,
-            )
-        except requests.exceptions.RequestException as e:
+            resp = pisces_request("POST", "/intel/indicators", self.runtime.credentials, json=body)
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
         if not resp.ok:
-            resp_body = resp.json() if resp.content else {}
-            msg = resp_body.get("error_message") or resp.text
-            yield self.create_text_message(f"添加威胁情报失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"添加威胁情报失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         data = resp.json()

@@ -2,28 +2,14 @@ from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import requests
-import urllib3
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from provider.pisces import get_token
+from provider.pisces import PiscesError, error_message, pisces_request
 
 
 class QueryReviewQueueTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
-        base_url = self.runtime.credentials["base_url"].rstrip("/")
-        username = self.runtime.credentials["username"]
-        password = self.runtime.credentials["password"]
-
-        try:
-            token = get_token(base_url, username, password)
-        except Exception as e:
-            yield self.create_text_message(f"登录失败: {e}")
-            return
-
         days = int(tool_parameters.get("days") or 7)
         now = datetime.now(timezone.utc)
         time_from = (now - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -42,23 +28,18 @@ class QueryReviewQueueTool(Tool):
             # status="pending" keeps only alerts that have not been reviewed yet.
             payload["status"] = "pending"
 
-        url = f"{base_url}/shift-manager/reviews"
         try:
-            resp = requests.post(
-                url,
-                json=payload,
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=30,
-                verify=False,
+            resp = pisces_request(
+                "POST", "/shift-manager/reviews", self.runtime.credentials, json=payload
             )
-        except requests.exceptions.RequestException as e:
+        except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return
 
         if not resp.ok:
-            body = resp.json() if resp.content else {}
-            msg = body.get("error_message") or resp.text
-            yield self.create_text_message(f"查询待复核告警失败（{resp.status_code}）: {msg}")
+            yield self.create_text_message(
+                f"查询待复核告警失败（{resp.status_code}）: {error_message(resp)}"
+            )
             return
 
         data = resp.json()
