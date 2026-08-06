@@ -42,8 +42,9 @@ class AddTraceTool(Tool):
             yield self.create_text_message(
                 f"租户 {object_name} 已有溯源记录（状态: {label}）。"
             )
+            # Only the status matters here; the profile was read to check it, not to report it.
             yield self.create_json_message(
-                {"object_name": object_name, "trace_status": trace_status, "existing": True, "data": profile}
+                {"object_name": object_name, "trace_status": trace_status, "existing": True}
             )
             return
 
@@ -64,6 +65,8 @@ class AddTraceTool(Tool):
             )
             return
 
-        data = put_resp.json()
+        # The response body is deliberately not read — see update_entity_profile.
         yield self.create_text_message(f"已为租户 {object_name} 添加溯源任务（状态: 溯源中），已通知值班溯源专员。")
-        yield self.create_json_message(data)
+        yield self.create_json_message(
+            {"object_name": object_name, "trace_status": "running", "existing": False, "updated": True}
+        )

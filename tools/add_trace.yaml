@@ -8,7 +8,7 @@ description:
   human:
     en_US: Add a trace (attribution) task for a tenant. Checks the existing trace status first; if a trace is already running or completed it returns the existing record, otherwise it starts one (status running), which hands the task to the trace workflow and notifies the tracer on duty.
     zh_Hans: 为租户添加溯源任务。先查询画像里的溯源状态：若已在溯源中或已完成，则返回已有溯源记录；否则发起溯源（状态置为 running/溯源中），任务会下发到溯源流程并通知值班溯源专员。
-  llm: Add a trace (attribution) task for a tenant identified by its tenant name. The tool first reads the entity profile's trace status; if the tenant is already being traced (running) or the trace is complete, it returns the existing trace record without re-adding. Otherwise it starts a new trace, which dispatches the task and notifies the tracer on duty. A clue is required and is included in that notice. Only tenant names are supported.
+  llm: Add a trace (attribution) task for a tenant identified by its tenant name. The tool first reads the entity profile's trace status; if the tenant is already being traced (running) or the trace is complete, it returns the existing trace record without re-adding. Otherwise it starts a new trace, which dispatches the task and notifies the tracer on duty. A clue is required and is included in that notice. Only tenant names are supported. Returns only the resulting trace status, never the profile; call query_entity_profile if you need to read the profile back.
 parameters:
   - name: object_name
     type: string

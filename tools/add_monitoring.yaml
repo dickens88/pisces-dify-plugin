@@ -8,7 +8,7 @@ description:
   human:
     en_US: Add (or remove) a monitoring flag on an entity profile.
     zh_Hans: 在实体画像上添加（或取消）盯防标记（monitoring）。
-  llm: Add a monitoring flag to an entity profile identified by object_name, marking it for continuous watching. The flag records who added it and when. Set enable to false to remove the monitoring flag.
+  llm: Add a monitoring flag to an entity profile identified by object_name, marking it for continuous watching. The flag records who added it and when. Set enable to false to remove the monitoring flag. Returns only a confirmation that the write landed, never the profile; call query_entity_profile if you need to read the profile back.
 parameters:
   - name: object_name
     type: string

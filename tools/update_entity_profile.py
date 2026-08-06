@@ -90,6 +90,6 @@ class UpdateEntityProfileTool(Tool):
             )
             return
 
-        data = resp.json()
+        # The body is left unread: an API not yet upgraded still echoes the whole profile back.
         yield self.create_text_message(f"已更新实体 {object_name} 的画像信息。")
-        yield self.create_json_message(data)
+        yield self.create_json_message({"object_name": object_name, "updated": True})

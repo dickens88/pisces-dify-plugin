@@ -8,7 +8,7 @@ description:
   human:
     en_US: Update an entity profile via PATCH /entities/<object_name>. If the entity has no profile yet, the server looks it up in Dify and otherwise creates a minimal profile of the given entity_type.
     zh_Hans: 通过 PATCH /entities/<object_name> 更新实体画像。若该实体尚无画像，服务端会先到 Dify 查询；查不到时按 entity_type 新建一条最小画像记录，再写入本次更新。
-  llm: Partially update an entity profile identified by object_name. Only the fields you provide are changed. Appends response dispositions and behavior records, and can write any other MongoDB field via extra_fields. If no profile exists yet, the server resolves the tenant from Dify first, and failing that creates a minimal profile of the given entity_type (tenant by default) so the update still lands. To change monitoring or trace state, use the add_monitoring / add_trace tools instead.
+  llm: Partially update an entity profile identified by object_name. Only the fields you provide are changed. Appends response dispositions and behavior records, and can write any other MongoDB field via extra_fields. If no profile exists yet, the server resolves the tenant from Dify first, and failing that creates a minimal profile of the given entity_type (tenant by default) so the update still lands. To change monitoring or trace state, use the add_monitoring / add_trace tools instead. Returns only a confirmation that the write landed, never the profile — call query_entity_profile to read it back, which also resolves a domainid to the tenant name it was stored under.
 parameters:
   - name: object_name
     type: string

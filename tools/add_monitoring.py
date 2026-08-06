@@ -35,7 +35,9 @@ class AddMonitoringTool(Tool):
             )
             return
 
-        data = resp.json()
+        # The response body is deliberately not read — see update_entity_profile.
         action = "已添加盯防标记" if enable else "已取消盯防标记"
         yield self.create_text_message(f"{action}: {object_name}")
-        yield self.create_json_message(data)
+        yield self.create_json_message(
+            {"object_name": object_name, "monitoring": enable, "updated": True}
+        )
