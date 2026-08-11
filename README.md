@@ -106,6 +106,26 @@
 
 对应接口 `POST /intel/indicators`。多个 `value` 共用同一组属性，一次批量提交。相同值在**不同**数据源下会合并进同一条情报（`sources` 数组各存一份），在**相同**数据源下则覆盖该源的上次上报。返回 `created` / `merged` / `skipped` 计数。
 
+### 异步威胁狩猎结果回调
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `status` | select | ✅ | `ok`（执行完成，含「没有命中」）/ `failed`（执行失败） |
+| `callback_url` | string | ❌ | 狩猎任务下发时随工作流输入给出的回调地址，可代替下面三个 ID（只取其中的路径） |
+| `hunt_id` | string | ❌ | 狩猎计划 ID，没有 `callback_url` 时必填 |
+| `run_id` | string | ❌ | 本次执行 ID，没有 `callback_url` 时必填 |
+| `task_id` | string | ❌ | 本次执行中该任务的 ID（整数），没有 `callback_url` 时必填 |
+| `rows` | string | ❌ | 命中记录，JSON 数组，每个元素为 JSON 对象；服务端最多保留 100 条样本 |
+| `findings` | number | ❌ | 命中总数；留空由服务端按 `rows` 条数计算，仅当 `rows` 是抽样时填写 |
+| `error` | string | ❌ | 失败原因，`status=failed` 时必填 |
+
+对应接口 `PUT /hunting/hunts/<hunt_id>/runs/<run_id>/tasks/<task_id>/result`，与其他工具一样走登录后的
+JWT 认证，无需额外凭据。
+
+用法：狩猎计划下发到 Dify 工作流时，输入里带有 `hunt_id` / `run_id` / `task_id` / `callback_url`；
+工作流若先以 `async=true` 返回，该任务会一直停在「运行中」，直到本工具把结果回传。所有任务都回传后，
+本次狩猎执行才会结束并按计划进入研判。每个任务只接受一次回调：重复回调或执行已结束会返回 409。
+
 ## 本地调试
 
 ```bash

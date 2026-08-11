@@ -1,0 +1,84 @@
+identity:
+  name: hunt_task_callback
+  author: charles
+  label:
+    en_US: Hunt Task Callback
+    zh_Hans: 异步威胁狩猎结果回调
+description:
+  human:
+    en_US: Report the result of an asynchronous threat-hunting task back to Pisces (PUT /hunting/hunts/<hunt_id>/runs/<run_id>/tasks/<task_id>/result). Call it at the end of a hunting workflow that answered "async" — the task stays running until this callback lands, and the run only closes once every task has reported.
+    zh_Hans: 将异步威胁狩猎任务的结果回传给双鱼座（PUT /hunting/hunts/<hunt_id>/runs/<run_id>/tasks/<task_id>/result）。狩猎工作流若以「async」方式先行返回，任务会一直处于「运行中」直到本回调送达；所有任务都回传后，本次狩猎执行才会结束并进入研判。
+  llm: Report the final result of an asynchronous threat hunting task back to Pisces. Use this only at the end of a hunting workflow that previously returned async=true; the hunting run stays open waiting for it. Address the callback with hunt_id, run_id and task_id from the workflow inputs. Set status=ok when the hunt completed (with rows holding the hits, an empty rows list meaning no hits found — which is a normal, successful result), or status=failed when it could not complete. The server derives the findings count from the rows array. Each callback can only be accepted once per task.
+parameters:
+  - name: status
+    type: select
+    required: true
+    label:
+      en_US: Status
+      zh_Hans: 任务状态
+    human_description:
+      en_US: Whether the hunting task completed (ok) or could not complete (failed). Finding nothing is still ok.
+      zh_Hans: 狩猎任务是执行完成（ok）还是执行失败（failed）。没查到命中也属于 ok。
+    llm_description: "Must be exactly ok or failed. ok means the hunt ran to completion — including when it found nothing, in which case rows is empty. failed means the hunt could not be carried out (query error, data source unavailable, timeout)."
+    form: llm
+    options:
+      - value: ok
+        label:
+          en_US: ok
+          zh_Hans: ok
+      - value: failed
+        label:
+          en_US: failed
+          zh_Hans: failed
+
+  - name: hunt_id
+    type: string
+    required: true
+    label:
+      en_US: Hunt ID
+      zh_Hans: 狩猎计划 ID
+    human_description:
+      en_US: The hunting plan ID from the workflow inputs.
+      zh_Hans: 狩猎计划 ID，取自工作流输入。
+    llm_description: The hunt_id from the workflow inputs.
+    form: llm
+
+  - name: run_id
+    type: string
+    required: true
+    label:
+      en_US: Run ID
+      zh_Hans: 执行 ID
+    human_description:
+      en_US: The ID of this hunting run from the workflow inputs.
+      zh_Hans: 本次狩猎执行的 ID，取自工作流输入。
+    llm_description: The run_id from the workflow inputs.
+    form: llm
+
+  - name: task_id
+    type: string
+    required: true
+    label:
+      en_US: Task ID
+      zh_Hans: 任务 ID
+    human_description:
+      en_US: The ID of this task inside the run, an integer from the workflow inputs.
+      zh_Hans: 本次执行中该任务的 ID（整数），取自工作流输入。
+    llm_description: The task_id from the workflow inputs, an integer.
+    form: llm
+
+  - name: rows
+    type: string
+    required: false
+    label:
+      en_US: Result Rows
+      zh_Hans: 命中记录
+    human_description:
+      en_US: The hits, as a JSON array of objects — one object per hit, its keys being the fields worth showing an analyst. Leave empty when nothing was found. Pisces keeps at most 100 rows as a sample.
+      zh_Hans: 命中记录，JSON 数组，每个元素是一条命中（JSON 对象），键为需要展示给分析师的字段。没有命中则留空。服务端最多保留 100 条作为样本。
+    llm_description: 'The hits as a JSON array of objects, e.g. [{"src_ip": "1.2.3.4", "user": "admin", "time": "2026-08-11T03:00:00Z", "reason": "..."}]. Every element must be a JSON object; keep the keys consistent across rows so they render as a table. Leave empty for a hunt that found nothing, and for status=failed. Only a sample of up to 100 rows is stored, so put the most representative hits first; the server counts findings from the rows array.'
+    form: llm
+
+extra:
+  python:
+    source: tools/hunt_task_callback.py
