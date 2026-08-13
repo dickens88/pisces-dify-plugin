@@ -15,6 +15,7 @@ class AddTraceTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage, None, None]:
         object_name = tool_parameters["object_name"]
         clue = str(tool_parameters.get("clue") or "").strip()
+        start_user = str(tool_parameters.get("start_user") or "").strip()
         encoded = quote(str(object_name), safe="")
 
         # 1) Look up the profile first to inspect the current trace status.
@@ -50,10 +51,14 @@ class AddTraceTool(Tool):
 
         # 3) No active trace — start one. 'running' is the only start state the API accepts;
         # it hands the task to Dify and notifies the tracer on duty, with the clue attached.
+        # Without start_user the API falls back to the plugin's own account (system).
+        body = {"status": "running", "clue": clue}
+        if start_user:
+            body["start_user"] = start_user
         try:
             put_resp = pisces_request(
                 "PUT", f"/entities/{encoded}/trace", self.runtime.credentials,
-                json={"status": "running", "clue": clue},
+                json=body,
             )
         except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")

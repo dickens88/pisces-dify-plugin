@@ -34,6 +34,18 @@ parameters:
     llm_description: A short clue stating why this tenant is being traced and what is known about the attacker (e.g. the attack source IP, the alert or behaviour that triggered it). Required — it is dispatched with the trace task and is the only context the tracer on duty receives, so summarise the actual finding rather than restating the tenant name.
     form: llm
 
+  - name: start_user
+    type: string
+    required: false
+    label:
+      en_US: Start User
+      zh_Hans: 发起人员
+    human_description:
+      en_US: The user requesting the trace, recorded as the trace's start user and shown in the trace-start notice. Leave empty and the trace is recorded as started by the system account.
+      zh_Hans: 发起溯源的用户名，会记录为溯源的发起人（start_user），并显示在发给值班溯源专员的通知里。不填则记为系统账号发起。
+    llm_description: The username (w3 account) of the person requesting this trace. Optional — pass it only when the requesting user is actually known, e.g. the operator in the current conversation; do not invent one. When omitted the trace is recorded as started by the system account instead of a real person.
+    form: llm
+
 extra:
   python:
     source: tools/add_trace.py
