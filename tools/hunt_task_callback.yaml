@@ -62,9 +62,9 @@ parameters:
       en_US: Task ID
       zh_Hans: 任务 ID
     human_description:
-      en_US: The ID of this task inside the run, an integer from the workflow inputs.
-      zh_Hans: 本次执行中该任务的 ID（整数），取自工作流输入。
-    llm_description: The task_id from the workflow inputs, an integer.
+      en_US: The ID of this task inside the run, a UUID from the workflow inputs.
+      zh_Hans: 本次执行中该任务的 ID（UUID），取自工作流输入。
+    llm_description: The task_id from the workflow inputs, a UUID string. Pass it through unchanged.
     form: llm
 
   - name: rows

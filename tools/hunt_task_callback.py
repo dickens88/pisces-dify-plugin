@@ -99,10 +99,6 @@ class HuntTaskCallbackTool(Tool):
                 return "", f"缺少 {name}：请传入狩猎任务下发时随输入给出的 hunt_id、run_id、task_id。"
             ids[name] = value
 
-        try:
-            int(ids["task_id"])
-        except ValueError:
-            return "", f"task_id 必须是整数，收到: {ids['task_id']}"
-
         return (f"/hunting/hunts/{quote(ids['hunt_id'], safe='')}"
-                f"/runs/{quote(ids['run_id'], safe='')}/tasks/{ids['task_id']}/result"), ""
+                f"/runs/{quote(ids['run_id'], safe='')}"
+                f"/tasks/{quote(ids['task_id'], safe='')}/result"), ""

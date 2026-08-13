@@ -111,18 +111,16 @@
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `status` | select | ✅ | `ok`（执行完成，含「没有命中」）/ `failed`（执行失败） |
-| `callback_url` | string | ❌ | 狩猎任务下发时随工作流输入给出的回调地址，可代替下面三个 ID（只取其中的路径） |
-| `hunt_id` | string | ❌ | 狩猎计划 ID，没有 `callback_url` 时必填 |
-| `run_id` | string | ❌ | 本次执行 ID，没有 `callback_url` 时必填 |
-| `task_id` | string | ❌ | 本次执行中该任务的 ID（整数），没有 `callback_url` 时必填 |
+| `hunt_id` | string | ✅ | 狩猎计划 ID |
+| `run_id` | string | ✅ | 本次执行 ID |
+| `task_id` | string | ✅ | 本次执行中该任务的 ID（UUID 字符串） |
 | `rows` | string | ❌ | 命中记录，JSON 数组，每个元素为 JSON 对象；服务端最多保留 100 条样本 |
-| `findings` | number | ❌ | 命中总数；留空由服务端按 `rows` 条数计算，仅当 `rows` 是抽样时填写 |
-| `error` | string | ❌ | 失败原因，`status=failed` 时必填 |
 
-对应接口 `PUT /hunting/hunts/<hunt_id>/runs/<run_id>/tasks/<task_id>/result`，与其他工具一样走登录后的
-JWT 认证，无需额外凭据。
+对应接口 `PUT /hunting/hunts/<hunt_id>/runs/<run_id>/tasks/<task_id>/result`，回调地址由工具用三个 ID
+拼接，请求发往凭据里配置的 API 地址，与其他工具一样走登录后的 JWT 认证，无需额外凭据。命中总数由服务端
+按回传的 `rows` 条数统计。
 
-用法：狩猎计划下发到 Dify 工作流时，输入里带有 `hunt_id` / `run_id` / `task_id` / `callback_url`；
+用法：狩猎计划下发到 Dify 工作流时，输入里带有 `hunt_id` / `run_id` / `task_id`；
 工作流若先以 `async=true` 返回，该任务会一直停在「运行中」，直到本工具把结果回传。所有任务都回传后，
 本次狩猎执行才会结束并按计划进入研判。每个任务只接受一次回调：重复回调或执行已结束会返回 409。
 
