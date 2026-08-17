@@ -124,6 +124,25 @@
 工作流若先以 `async=true` 返回，该任务会一直停在「运行中」，直到本工具把结果回传。所有任务都回传后，
 本次狩猎执行才会结束并按计划进入研判。每个任务只接受一次回调：重复回调或执行已结束会返回 409。
 
+### 发布通知
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | ✅ | 通知标题，最长 512 字符 |
+| `body` | string | ❌ | 通知正文 |
+| `to_users` | string | ❌ | 收件用户名，多个用英文逗号 / 换行分隔 |
+| `to_groups` | string | ❌ | 收件用户组，多个用英文逗号 / 换行分隔 |
+| `to_all` | boolean | ❌ | 发给全体用户，默认 `false`；为 `true` 时忽略 `to_users` / `to_groups` |
+| `category` | string | ❌ | 通知中心的分类标签页，默认 `智能体`，最长 32 字符 |
+| `severity` | select | ❌ | `info` 提示（默认）/ `success` 成功 / `warning` 警告 / `critical` 严重 |
+| `link` | string | ❌ | 站内跳转路径，如 `/incidents/xxx` |
+| `dedupe_key` | string | ❌ | 去重键，重复发布时返回已有通知，不重复推送 |
+
+对应接口 `POST /notifications`。`to_users` / `to_groups` / `to_all` 三者至少填一个，否则工具直接报错不发请求。
+发给**用户组或全体用户**需要凭据账号在平台配置 `application.notification.broadcast_senders` 白名单内
+（默认仅 `admin`），否则接口返回 403，工具会提示改用 `to_users` 指定收件人。通知的发件人固定为凭据账号，
+不可伪造。返回 `notification_id` 与实际投递范围（`audience`）。
+
 ## 本地调试
 
 ```bash

@@ -1,0 +1,142 @@
+identity:
+  name: send_notification
+  author: charles
+  label:
+    en_US: Send Notification
+    zh_Hans: 发布通知
+description:
+  human:
+    en_US: Publish an in-app notification to specified users, user groups, or everyone on the Pisces platform. It appears in the recipients' notification centre.
+    zh_Hans: 向双鱼座平台的指定用户、用户组或全体用户发布站内通知，出现在收件人的通知中心。
+  llm: Publish an in-app notification on the Pisces platform. Recipients are given by to_users (usernames), to_groups (user groups), or to_all (everyone); at least one is required. Broadcasting to groups or to everyone is only allowed for accounts on the platform's broadcast whitelist, otherwise the call is rejected with 403 — address named users instead. The notification appears in the recipients' notification centre under the given category tab. Returns only a confirmation with the notification id, never the recipients' read state.
+parameters:
+  - name: title
+    type: string
+    required: true
+    label:
+      en_US: Title
+      zh_Hans: 通知标题
+    human_description:
+      en_US: The notification headline, shown in the list and the popup. Keep it to one line; at most 512 characters.
+      zh_Hans: 通知标题，显示在通知列表和弹窗里。建议一行写完，最长 512 个字符。
+    llm_description: A one-line headline stating what happened, e.g. "租户 X 出现疑似横向移动，请核实". Should be understandable on its own without opening the body. Truncated at 512 characters.
+    form: llm
+
+  - name: body
+    type: string
+    required: false
+    label:
+      en_US: Body
+      zh_Hans: 通知正文
+    human_description:
+      en_US: Optional detail text shown when the notification is expanded. Leave empty for a title-only notice.
+      zh_Hans: 可选的通知正文，展开通知时显示。留空则只有标题。
+    llm_description: Optional detail behind the title — findings, affected assets, what the recipient should do next. Plain text; omit it when the title already says everything.
+    form: llm
+
+  - name: to_users
+    type: string
+    required: false
+    label:
+      en_US: To Users
+      zh_Hans: 收件用户
+    human_description:
+      en_US: Recipient usernames, separated by commas or newlines, e.g. "zhangsan,lisi". Leave empty when sending to groups or to everyone.
+      zh_Hans: 收件人用户名，多个用英文逗号或换行分隔，例如 `zhangsan,lisi`。发给用户组或全体用户时可留空。
+    llm_description: The usernames (w3 accounts) that should receive this notification, comma-separated. Use real usernames only — never invent one; if the recipient is unknown, use query_shift_managers to find who is on duty. Leave empty when to_groups or to_all is used.
+    form: llm
+
+  - name: to_groups
+    type: string
+    required: false
+    label:
+      en_US: To Groups
+      zh_Hans: 收件用户组
+    human_description:
+      en_US: Recipient user groups, separated by commas or newlines. Requires broadcast permission on the plugin's account.
+      zh_Hans: 收件用户组，多个用英文逗号或换行分隔。需要插件凭据账号具备群发权限。
+    llm_description: The user groups that should receive this notification, comma-separated. Only use group names you were actually given; sending to a group requires the plugin account to be on the platform's broadcast whitelist.
+    form: llm
+
+  - name: to_all
+    type: boolean
+    required: false
+    label:
+      en_US: To Everyone
+      zh_Hans: 发给全体用户
+    human_description:
+      en_US: Send to every platform user. Requires broadcast permission on the plugin's account. When enabled, to_users and to_groups are ignored.
+      zh_Hans: 向平台全体用户发布。需要插件凭据账号具备群发权限；勾选后 to_users / to_groups 将被忽略。
+    llm_description: Set true only for announcements that genuinely concern everyone (platform-wide incidents, maintenance). Everyone already includes any named user, so to_users and to_groups are dropped when this is true. Requires broadcast permission, otherwise the send fails with 403.
+    form: form
+    default: false
+
+  - name: category
+    type: string
+    required: false
+    label:
+      en_US: Category
+      zh_Hans: 通知分类
+    human_description:
+      en_US: The category tab the notification is filed under in the notification centre, e.g. 事件管理 / 值班管理 / 威胁情报. Defaults to 智能体. At most 32 characters.
+      zh_Hans: 通知在通知中心归入的分类标签页，例如 `事件管理` / `值班管理` / `威胁情报`，默认 `智能体`。最长 32 个字符。
+    llm_description: The category tab this notification is filed under. Reuse an existing category the platform already uses (事件管理, 值班管理, 威胁情报) when the notice belongs to one; otherwise leave it empty to use the default 智能体. Do not invent a new category per message — every distinct value creates its own tab in the notification centre.
+    form: llm
+
+  - name: severity
+    type: select
+    required: false
+    label:
+      en_US: Severity
+      zh_Hans: 通知级别
+    human_description:
+      en_US: The severity shown on the notification — info (default), success, warning or critical.
+      zh_Hans: 通知级别：`info` 提示（默认）/ `success` 成功 / `warning` 警告 / `critical` 严重。
+    llm_description: How urgent the notification is. Use info for routine notices, success for a completed job, warning for something needing attention, critical only for a real emergency.
+    form: llm
+    default: info
+    options:
+      - value: info
+        label:
+          en_US: Info
+          zh_Hans: 提示
+      - value: success
+        label:
+          en_US: Success
+          zh_Hans: 成功
+      - value: warning
+        label:
+          en_US: Warning
+          zh_Hans: 警告
+      - value: critical
+        label:
+          en_US: Critical
+          zh_Hans: 严重
+
+  - name: link
+    type: string
+    required: false
+    label:
+      en_US: Link
+      zh_Hans: 跳转链接
+    human_description:
+      en_US: Optional in-platform path the notification jumps to when clicked, e.g. /incidents/xxx or /intel.
+      zh_Hans: 可选的站内跳转路径，点击通知时打开，例如 `/incidents/xxx`、`/intel`。
+    llm_description: An in-platform path (starting with /) the recipient should be taken to, e.g. /incidents/<incident_id> for an incident, /intel for threat intel, /shift-manager for the duty roster. Omit when there is no relevant page.
+    form: llm
+
+  - name: dedupe_key
+    type: string
+    required: false
+    label:
+      en_US: Dedupe Key
+      zh_Hans: 去重键
+    human_description:
+      en_US: Optional idempotency key. A second send with the same key returns the existing notification instead of creating a duplicate.
+      zh_Hans: 可选的去重键。使用相同去重键重复发布时，服务端返回已有通知而不会重复推送。
+    llm_description: A stable key identifying this exact notice, e.g. "incident.created:<incident_id>". Pass it when the same workflow may run more than once for the same subject, so retries do not spam recipients. Omit when every send should produce a new notification.
+    form: llm
+
+extra:
+  python:
+    source: tools/send_notification.py

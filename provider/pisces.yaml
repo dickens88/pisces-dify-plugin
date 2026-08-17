@@ -54,6 +54,7 @@ tools:
   - tools/query_threat_intel.yaml
   - tools/add_threat_intel.yaml
   - tools/hunt_task_callback.yaml
+  - tools/send_notification.yaml
 extra:
   python:
     source: provider/pisces.py
