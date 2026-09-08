@@ -80,13 +80,6 @@ class SendNotificationTool(Tool):
             yield self.create_text_message(f"请求失败: {e}")
             return
 
-        if resp.status_code == 403:
-            yield self.create_text_message(
-                "发布失败（403）：当前凭据的账号没有群发权限，无法向用户组或全体用户发布通知"
-                "（群发白名单由平台配置 application.notification.broadcast_senders 控制）。"
-                "可以改为用 to_users 指定具体收件人。"
-            )
-            return
         if not resp.ok:
             yield self.create_text_message(
                 f"发布通知失败（{resp.status_code}）: {error_message(resp)}"

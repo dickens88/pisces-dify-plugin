@@ -8,7 +8,7 @@ description:
   human:
     en_US: Publish an in-app notification to specified users, user groups, or everyone on the Pisces platform. It appears in the recipients' notification centre.
     zh_Hans: 向双鱼座平台的指定用户、用户组或全体用户发布站内通知，出现在收件人的通知中心。
-  llm: Publish an in-app notification on the Pisces platform. Recipients are given by to_users (usernames), to_groups (user groups), or to_all (everyone); at least one is required. Broadcasting to groups or to everyone is only allowed for accounts on the platform's broadcast whitelist, otherwise the call is rejected with 403 — address named users instead. The notification appears in the recipients' notification centre under the given category tab. Returns only a confirmation with the notification id, never the recipients' read state.
+  llm: Publish an in-app notification on the Pisces platform. Recipients are given by to_users (usernames), to_groups (user groups), or to_all (everyone); at least one is required. The notification appears in the recipients' notification centre under the given category tab. Returns only a confirmation with the notification id, never the recipients' read state.
 parameters:
   - name: title
     type: string
@@ -53,9 +53,9 @@ parameters:
       en_US: To Groups
       zh_Hans: 收件用户组
     human_description:
-      en_US: Recipient user groups, separated by commas or newlines. Requires broadcast permission on the plugin's account.
-      zh_Hans: 收件用户组，多个用英文逗号或换行分隔。需要插件凭据账号具备群发权限。
-    llm_description: The user groups that should receive this notification, comma-separated. Only use group names you were actually given; sending to a group requires the plugin account to be on the platform's broadcast whitelist.
+      en_US: Recipient user groups, separated by commas or newlines.
+      zh_Hans: 收件用户组，多个用英文逗号或换行分隔。
+    llm_description: The user groups that should receive this notification, comma-separated. Only use group names you were actually given.
     form: llm
 
   - name: to_all
@@ -65,9 +65,9 @@ parameters:
       en_US: To Everyone
       zh_Hans: 发给全体用户
     human_description:
-      en_US: Send to every platform user. Requires broadcast permission on the plugin's account. When enabled, to_users and to_groups are ignored.
-      zh_Hans: 向平台全体用户发布。需要插件凭据账号具备群发权限；勾选后 to_users / to_groups 将被忽略。
-    llm_description: Set true only for announcements that genuinely concern everyone (platform-wide incidents, maintenance). Everyone already includes any named user, so to_users and to_groups are dropped when this is true. Requires broadcast permission, otherwise the send fails with 403.
+      en_US: Send to every platform user. When enabled, to_users and to_groups are ignored.
+      zh_Hans: 向平台全体用户发布；勾选后 to_users / to_groups 将被忽略。
+    llm_description: Set true only for announcements that genuinely concern everyone (platform-wide incidents, maintenance). Everyone already includes any named user, so to_users and to_groups are dropped when this is true.
     form: form
     default: false
 

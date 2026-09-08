@@ -1,0 +1,79 @@
+identity:
+  name: query_trace_result
+  author: charles
+  label:
+    en_US: Query Trace Result
+    zh_Hans: 查询溯源结果
+description:
+  human:
+    en_US: Query attacker-trace (attribution) results. Give a tenant name/domain id to fetch that single tenant's trace record; omit it to list/export multiple trace records at once, filtered by trace status.
+    zh_Hans: 查询攻击者溯源结果。传入租户名/domainid 可查询该租户的单条溯源记录；不传则改为按溯源状态批量列出/导出多条溯源记录。
+  llm: Query attacker-trace (attribution) results, i.e. the trace_status/trace_result recorded on a tenant's entity profile (clue, start user/time, conclusion, update user/time). If object_name is given, returns the single trace record for that tenant — a tenant name is matched exactly first, and a domain id or partial name is resolved through the same keyword search the console's search box uses, naming the entity it resolved to; if it has never been traced this is reported instead of an empty record. If object_name is omitted, lists trace records in bulk instead, filtered by trace_status (default "running,complete", i.e. only tenants that have been queued for or finished a trace); set export_all=true to page through and return every matching record in one response instead of one page at a time. Use this tool to read back trace results — use add_trace to start a new trace.
+parameters:
+  - name: object_name
+    type: string
+    required: false
+    label:
+      en_US: Tenant Name
+      zh_Hans: 租户名
+    human_description:
+      en_US: The tenant to query, e.g. a tenant name or domain id. A domain id or a partial tenant name is resolved to the tenant automatically. Leave empty to list/export trace records for multiple tenants instead.
+      zh_Hans: 要查询的租户，例如租户名或 domainid。传 domainid 或租户名的一部分时会自动解析到对应租户。留空则改为批量列出/导出多个租户的溯源结果。
+    llm_description: The tenant to look up — a tenant name or a domain id. An exact tenant name is matched first; a domain id or partial name falls back to keyword search and resolves to the matching tenant. Omit this to list/export multiple tenants' trace records instead of fetching one.
+    form: llm
+
+  - name: trace_status
+    type: string
+    required: false
+    label:
+      en_US: Trace Status Filter
+      zh_Hans: 溯源状态筛选
+    human_description:
+      en_US: Only used when object_name is omitted (batch mode). Comma-separated trace statuses to include — running (溯源中), complete (已完成), none (从未溯源). Use "all" for no filter at all. Default "running,complete" — i.e. only tenants that have an actual trace record.
+      zh_Hans: 仅在不填 object_name（批量模式）时生效。逗号分隔的溯源状态列表：running（溯源中）、complete（已完成）、none（从未发起过溯源）。传 "all" 表示不筛选。默认 "running,complete"，即只返回有溯源记录的租户。
+    llm_description: 'Batch-mode only filter. Comma-separated subset of: running, complete, none (never traced). Pass "all" to disable the filter entirely. Default "running,complete".'
+    form: llm
+    default: "running,complete"
+
+  - name: export_all
+    type: boolean
+    required: false
+    label:
+      en_US: Export All
+      zh_Hans: 导出全部
+    human_description:
+      en_US: Only used when object_name is omitted (batch mode). When true, ignores limit/offset and pages through every tenant matching trace_status, returning them all in one response (capped at 2000 records for safety). When false, returns one page controlled by limit/offset.
+      zh_Hans: 仅在不填 object_name（批量模式）时生效。为 true 时忽略 limit/offset，自动翻页取出所有符合 trace_status 条件的记录并一次性返回（出于保护上限为 2000 条）；为 false 时按 limit/offset 返回一页。
+    llm_description: Batch-mode only. true = page through and return every matching record in one response (up to 2000, for a genuine bulk export); false/omitted = return one page per call, use limit/offset to walk through more.
+    form: llm
+    default: false
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Only used in batch mode with export_all=false. Maximum number of records to return (default 50).
+      zh_Hans: 仅在批量模式且 export_all=false 时生效。每页返回的最大记录数（默认 50）。
+    llm_description: Batch-mode-and-not-export_all only. Number of records per page, default 50.
+    form: llm
+    default: 50
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Only used in batch mode with export_all=false. Number of records to skip for pagination (default 0).
+      zh_Hans: 仅在批量模式且 export_all=false 时生效。分页偏移量（默认 0）。
+    llm_description: Batch-mode-and-not-export_all only. Offset for pagination, default 0.
+    form: llm
+    default: 0
+
+extra:
+  python:
+    source: tools/query_trace_result.py
