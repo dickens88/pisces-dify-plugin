@@ -6,9 +6,9 @@ identity:
     zh_Hans: 发布通知
 description:
   human:
-    en_US: Publish an in-app notification to specified users, user groups, or everyone on the Pisces platform. It appears in the recipients' notification centre.
-    zh_Hans: 向双鱼座平台的指定用户、用户组或全体用户发布站内通知，出现在收件人的通知中心。
-  llm: Publish an in-app notification on the Pisces platform. Recipients are given by to_users (usernames), to_groups (user groups), or to_all (everyone); at least one is required. The notification appears in the recipients' notification centre under the given category tab. Returns only a confirmation with the notification id, never the recipients' read state.
+    en_US: Publish an in-app notification to specified users, user groups, or everyone on the Pisces platform. It appears in the recipients' message centre.
+    zh_Hans: 向双鱼座平台的指定用户、用户组或全体用户发布站内通知，出现在收件人的消息中心。
+  llm: Publish an in-app notification on the Pisces platform. Recipients are given by to_users (usernames), to_groups (user groups), or to_all (everyone); at least one is required. Every notification has a message type (the tab it is filed under) and a level; optionally attach the entity it concerns (target + target_kind), tags for filtering, and an in-platform link. Returns only a confirmation with the notification id, never the recipients' read state.
 parameters:
   - name: title
     type: string
@@ -21,6 +21,51 @@ parameters:
       zh_Hans: 通知标题，显示在通知列表和弹窗里。建议一行写完，最长 512 个字符。
     llm_description: A one-line headline stating what happened, e.g. "租户 X 出现疑似横向移动，请核实". Should be understandable on its own without opening the body. Truncated at 512 characters.
     form: llm
+
+  - name: type
+    type: select
+    required: true
+    label:
+      en_US: Message Type
+      zh_Hans: 消息类型
+    human_description:
+      en_US: The message type the notification is filed under in the message centre. Users can subscribe to or mute every type except approval / assign / notice, which always reach their bell.
+      zh_Hans: 通知在消息中心归入的消息类型。除 `approval` / `assign` / `notice` 始终推送外，其他类型用户可自行订阅或屏蔽。
+    llm_description: "Which tab of the message centre the notification belongs to. Pick by subject: incident (security incidents), vuln (vulnerability scan findings), tenant (malicious tenants / attacker attribution), intel (threat intelligence), quality (alert review / ops quality), hunt (threat hunting results), assign (duty roster, assignment, collaboration), notice (platform-wide announcements). Never use approval — approvals are created by the platform itself. Prefer a specific type over notice: notice cannot be muted by recipients."
+    form: llm
+    options:
+      - value: incident
+        label:
+          en_US: Security Incident
+          zh_Hans: 安全事件
+      - value: vuln
+        label:
+          en_US: Vulnerability
+          zh_Hans: 漏扫事件
+      - value: tenant
+        label:
+          en_US: Malicious Tenant
+          zh_Hans: 恶意租户
+      - value: intel
+        label:
+          en_US: Intel
+          zh_Hans: 情报
+      - value: quality
+        label:
+          en_US: Ops Quality
+          zh_Hans: 运营质量
+      - value: hunt
+        label:
+          en_US: Hunt Result
+          zh_Hans: 狩猎结果
+      - value: assign
+        label:
+          en_US: Assignment
+          zh_Hans: 指派与协作
+      - value: notice
+        label:
+          en_US: Platform Notice
+          zh_Hans: 平台公告
 
   - name: body
     type: string
@@ -71,47 +116,117 @@ parameters:
     form: form
     default: false
 
-  - name: category
-    type: string
-    required: false
-    label:
-      en_US: Category
-      zh_Hans: 通知分类
-    human_description:
-      en_US: The category tab the notification is filed under in the notification centre, e.g. 事件管理 / 值班管理 / 威胁情报. Defaults to 智能体. At most 32 characters.
-      zh_Hans: 通知在通知中心归入的分类标签页，例如 `事件管理` / `值班管理` / `威胁情报`，默认 `智能体`。最长 32 个字符。
-    llm_description: The category tab this notification is filed under. Reuse an existing category the platform already uses (事件管理, 值班管理, 威胁情报) when the notice belongs to one; otherwise leave it empty to use the default 智能体. Do not invent a new category per message — every distinct value creates its own tab in the notification centre.
-    form: llm
-
-  - name: severity
+  - name: level
     type: select
     required: false
     label:
-      en_US: Severity
-      zh_Hans: 通知级别
+      en_US: Level
+      zh_Hans: 消息级别
     human_description:
-      en_US: The severity shown on the notification — info (default), success, warning or critical.
-      zh_Hans: 通知级别：`info` 提示（默认）/ `success` 成功 / `warning` 警告 / `critical` 严重。
-    llm_description: How urgent the notification is. Use info for routine notices, success for a completed job, warning for something needing attention, critical only for a real emergency.
+      en_US: The level shown on the notification — tips (default), low, medium, high or fatal. Also sets the default AI priority score.
+      zh_Hans: 消息级别：`tips` 提示（默认）/ `low` 低 / `medium` 中 / `high` 高 / `fatal` 致命。同时决定默认的 AI 优先级分。
+    llm_description: How urgent the notification is. tips for routine notices and completed jobs, low for minor findings, medium for something worth a look today, high for something needing prompt attention, fatal only for a real emergency.
     form: llm
-    default: info
+    default: tips
     options:
-      - value: info
+      - value: tips
         label:
-          en_US: Info
+          en_US: Tips
           zh_Hans: 提示
-      - value: success
+      - value: low
         label:
-          en_US: Success
-          zh_Hans: 成功
-      - value: warning
+          en_US: Low
+          zh_Hans: 低
+      - value: medium
         label:
-          en_US: Warning
-          zh_Hans: 警告
-      - value: critical
+          en_US: Medium
+          zh_Hans: 中
+      - value: high
         label:
-          en_US: Critical
-          zh_Hans: 严重
+          en_US: High
+          zh_Hans: 高
+      - value: fatal
+        label:
+          en_US: Fatal
+          zh_Hans: 致命
+
+  - name: source_module
+    type: string
+    required: false
+    label:
+      en_US: Source Module
+      zh_Hans: 来源模块
+    human_description:
+      en_US: Optional name of the module or agent that produced the notification, shown as a badge, e.g. 威胁狩猎 / 智能体. At most 64 characters.
+      zh_Hans: 可选的来源模块或智能体名称，作为徽标显示，例如 `威胁狩猎` / `智能体`。最长 64 个字符。
+    llm_description: The module or agent the notice comes from, shown as a badge on the notification, e.g. the workflow's name. Keep it short and reuse the same value across sends so recipients recognise it.
+    form: llm
+
+  - name: target
+    type: string
+    required: false
+    label:
+      en_US: Target Entity
+      zh_Hans: 关联实体
+    human_description:
+      en_US: Optional entity the notification is about — a hostname, account, IP, domain, tenant id or data source name. Set target_kind alongside it. At most 255 characters.
+      zh_Hans: 可选的关联实体——主机名、账号、IP、域名、租户 ID 或数据源名，需同时填写 target_kind。最长 255 个字符。
+    llm_description: The single entity this notification is about (e.g. "10.1.2.3", "svc-backup", "tenant-8842"). Shown on the notification and used by recipients to filter by entity. Always set target_kind when you set this; omit both when the notice is not about one specific entity.
+    form: llm
+
+  - name: target_kind
+    type: select
+    required: false
+    label:
+      en_US: Target Kind
+      zh_Hans: 实体类型
+    human_description:
+      en_US: What kind of entity target is. Ignored when target is empty.
+      zh_Hans: 关联实体的类型；target 为空时忽略。
+    llm_description: The kind of entity given in target — host, account, ip, domain, tenant or ds (data source). Leave as none when target is empty.
+    form: llm
+    default: none
+    options:
+      - value: none
+        label:
+          en_US: None
+          zh_Hans: 无
+      - value: host
+        label:
+          en_US: Host
+          zh_Hans: 主机
+      - value: account
+        label:
+          en_US: Account
+          zh_Hans: 账号
+      - value: ip
+        label:
+          en_US: IP
+          zh_Hans: IP
+      - value: domain
+        label:
+          en_US: Domain
+          zh_Hans: 域名
+      - value: tenant
+        label:
+          en_US: Tenant
+          zh_Hans: 租户
+      - value: ds
+        label:
+          en_US: Data Source
+          zh_Hans: 数据源
+
+  - name: tags
+    type: string
+    required: false
+    label:
+      en_US: Tags
+      zh_Hans: 标签
+    human_description:
+      en_US: Optional tags for filtering, separated by commas or newlines. At most 8 tags of 32 characters each.
+      zh_Hans: 可选的过滤标签，多个用英文逗号或换行分隔。最多 8 个，每个最长 32 个字符。
+    llm_description: Short labels recipients can filter on and message boards can select by, e.g. "横向移动,高危". Reuse existing tags rather than inventing variants; at most 8.
+    form: llm
 
   - name: link
     type: string
@@ -120,8 +235,8 @@ parameters:
       en_US: Link
       zh_Hans: 跳转链接
     human_description:
-      en_US: Optional in-platform path the notification jumps to when clicked, e.g. /incidents/xxx or /intel.
-      zh_Hans: 可选的站内跳转路径，点击通知时打开，例如 `/incidents/xxx`、`/intel`。
+      en_US: Optional in-platform path the notification jumps to when clicked, e.g. /incidents/xxx or /intel. At most 512 characters.
+      zh_Hans: 可选的站内跳转路径，点击通知时打开，例如 `/incidents/xxx`、`/intel`。最长 512 个字符。
     llm_description: An in-platform path (starting with /) the recipient should be taken to, e.g. /incidents/<incident_id> for an incident, /intel for threat intel, /shift-manager for the duty roster. Omit when there is no relevant page.
     form: llm
 
@@ -132,8 +247,8 @@ parameters:
       en_US: Dedupe Key
       zh_Hans: 去重键
     human_description:
-      en_US: Optional idempotency key. A second send with the same key returns the existing notification instead of creating a duplicate.
-      zh_Hans: 可选的去重键。使用相同去重键重复发布时，服务端返回已有通知而不会重复推送。
+      en_US: Optional idempotency key. A second send with the same key returns the existing notification instead of creating a duplicate. At most 128 characters.
+      zh_Hans: 可选的去重键。使用相同去重键重复发布时，服务端返回已有通知而不会重复推送。最长 128 个字符。
     llm_description: A stable key identifying this exact notice, e.g. "incident.created:<incident_id>". Pass it when the same workflow may run more than once for the same subject, so retries do not spam recipients. Omit when every send should produce a new notification.
     form: llm
 

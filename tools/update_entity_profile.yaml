@@ -59,9 +59,9 @@ parameters:
       en_US: Response Dispositions
       zh_Hans: 响应处置
     human_description:
-      en_US: "A response disposition record, or a JSON array of them, appended to the entity's responses. Each item: {\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}. update_time is added by the server."
-      zh_Hans: "一条响应处置记录，或多条记录的 JSON 数组，会追加到实体的 responses（保留历史）。每条结构：{\"app_id\": \"xxx\", \"title\": \"xxx\", \"param\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}。update_time 由服务端写入。"
-    llm_description: "A JSON object (or array of objects) appended to the entity's responses history. Keys: app_id, title, param (object), status, update_user. Do not set update_time — the server stamps it."
+      en_US: "A response disposition record, or a JSON array of them, appended to the entity's responses. Each item: {\"record_id\": 123, \"event_id\": \"xxx\", \"source_type\": \"alert\", \"app_id\": \"xxx\", \"title\": \"xxx\", \"params\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}. record_id / event_id / source_type identify what triggered the disposal: copy them from the workflow inputs of the same names, which Pisces passes in (source_type is alert, incident, entity, etc.). update_time is added by the server."
+      zh_Hans: "一条响应处置记录，或多条记录的 JSON 数组，会追加到实体的 responses（保留历史）。每条结构：{\"record_id\": 123, \"event_id\": \"xxx\", \"source_type\": \"alert\", \"app_id\": \"xxx\", \"title\": \"xxx\", \"params\": {}, \"status\": \"completed\", \"update_user\": \"xxx\"}。record_id / event_id / source_type 标识这次处置由哪里触发，直接取 Pisces 传入工作流的同名输入（source_type 取值如 alert、incident、entity）。update_time 由服务端写入。"
+    llm_description: "A JSON object (or array of objects) appended to the entity's responses history. Keys: record_id, event_id, source_type, app_id, title, params (object), status, update_user. record_id, event_id and source_type record what triggered the disposal (source_type is alert, incident, entity, etc.); copy them verbatim from the workflow inputs of the same names and omit any that are absent. Do not set update_time — the server stamps it."
     form: llm
 
   - name: behaviors

@@ -133,14 +133,18 @@
 | `to_users` | string | ❌ | 收件用户名，多个用英文逗号 / 换行分隔 |
 | `to_groups` | string | ❌ | 收件用户组，多个用英文逗号 / 换行分隔 |
 | `to_all` | boolean | ❌ | 发给全体用户，默认 `false`；为 `true` 时忽略 `to_users` / `to_groups` |
-| `category` | string | ❌ | 通知中心的分类标签页，默认 `智能体`，最长 32 字符 |
-| `severity` | select | ❌ | `info` 提示（默认）/ `success` 成功 / `warning` 警告 / `critical` 严重 |
-| `link` | string | ❌ | 站内跳转路径，如 `/incidents/xxx` |
-| `dedupe_key` | string | ❌ | 去重键，重复发布时返回已有通知，不重复推送 |
+| `type` | select | ✅ | 消息类型：`incident` 安全事件 / `vuln` 漏扫事件 / `tenant` 恶意租户 / `intel` 情报 / `quality` 运营质量 / `hunt` 狩猎结果 / `assign` 指派与协作 / `notice` 平台公告 |
+| `level` | select | ❌ | `tips` 提示（默认）/ `low` 低 / `medium` 中 / `high` 高 / `fatal` 致命 |
+| `source_module` | string | ❌ | 来源模块或智能体名，作为徽标显示，最长 64 字符 |
+| `target` | string | ❌ | 关联实体（主机 / 账号 / IP / 域名 / 租户 / 数据源），最长 255 字符 |
+| `target_kind` | select | ❌ | 关联实体类型：`host` / `account` / `ip` / `domain` / `tenant` / `ds`；`target` 为空时忽略 |
+| `tags` | string | ❌ | 过滤标签，多个用英文逗号 / 换行分隔，最多 8 个、每个最长 32 字符 |
+| `link` | string | ❌ | 站内跳转路径，如 `/incidents/xxx`，最长 512 字符 |
+| `dedupe_key` | string | ❌ | 去重键，重复发布时返回已有通知，不重复推送，最长 128 字符 |
 
 对应接口 `POST /notifications`。`to_users` / `to_groups` / `to_all` 三者至少填一个，否则工具直接报错不发请求。
-发给**用户组或全体用户**需要凭据账号在平台配置 `application.notification.broadcast_senders` 白名单内
-（默认仅 `admin`），否则接口返回 403，工具会提示改用 `to_users` 指定收件人。通知的发件人固定为凭据账号，
+`type` 决定通知归入消息中心的哪个标签页；`approval` / `assign` / `notice` 三类始终推送、收件人无法屏蔽，
+其余类型受收件人订阅设置控制，因此能用具体类型就不要用 `notice`。通知的发件人固定为凭据账号，
 不可伪造。返回 `notification_id` 与实际投递范围（`audience`）。
 
 ## 本地调试

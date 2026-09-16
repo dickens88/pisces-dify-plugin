@@ -46,6 +46,18 @@ parameters:
     llm_description: Optional alert ID to associate this DeepTrace session with. Provide it when the analysis is investigating a specific alert, so the session can later be looked up from that alert. Note that supplying it also marks the session as a shared investigation session. Omit for a standalone session.
     form: llm
 
+  - name: agent_id
+    type: string
+    required: false
+    label:
+      en_US: Agent ID
+      zh_Hans: Agent ID
+    human_description:
+      en_US: Optional agent role to run this session with (e.g. "official-attack-tracing"). Leave empty to use the default agent.
+      zh_Hans: 可选的 Agent 角色 ID（如 "official-attack-tracing"），决定本次会话使用的人设、默认模型与记忆开关；留空则使用默认 Agent。
+    llm_description: Optional agent role id to run this session with. Leave empty to use the default agent.
+    form: form
+
   - name: model
     type: string
     required: false

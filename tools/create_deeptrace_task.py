@@ -20,6 +20,10 @@ class CreateDeeptraceTaskTool(Tool):
         alert_id = (tool_parameters.get("alert_id") or "").strip()
         if alert_id:
             session_body["alert_id"] = alert_id
+        # agent_id picks the agent role; omitting it falls back to the default agent.
+        agent_id = (tool_parameters.get("agent_id") or "").strip()
+        if agent_id:
+            session_body["agent_id"] = agent_id
         model = (tool_parameters.get("model") or "").strip()
         if model:
             # Set here too so session.model (shown in the UI) matches the run.
