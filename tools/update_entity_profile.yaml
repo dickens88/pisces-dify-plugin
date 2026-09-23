@@ -88,6 +88,19 @@ parameters:
     llm_description: "A JSON object of arbitrary fields written directly into the entity's MongoDB document — the escape hatch for anything the other parameters do not cover, such as remark, security_tag, attacker_type or user_tags (all under tenant_tags). Nested objects are flattened to dotted paths, so {\"tenant_tags\": {\"remark\": \"x\"}} updates only tenant_tags.remark and leaves sibling keys intact; dotted keys like {\"basic.domainname\": \"x\"} also work. A null value DELETES the field rather than storing null. Timestamps may be written as an ISO-8601 string and are converted to real dates; an unparseable one gives a 400, as do keys beginning with $ or named _id."
     form: llm
 
+  - name: force_update
+    type: boolean
+    required: false
+    label:
+      en_US: Force Sync Basic Info
+      zh_Hans: 强制同步基础信息
+    human_description:
+      en_US: When enabled, re-sync the tenant's basic info from Dify before applying this update — the same as the "Sync basic info" button on the tenant profile page. Fields passed in this call still take precedence. Tenants only. May be used alone with no other fields.
+      zh_Hans: 开启后，写入本次更新之前先从 Dify 重新同步一次租户基础信息，等同于租户画像页上的“同步基础信息”按钮。本次传入的字段仍以传入值为准。仅支持租户。可以不传其他字段，只做同步。
+    llm_description: Set true to re-sync the tenant's basic info from Dify before applying the update, like the profile page's "Sync basic info" button. Only valid when entity_type is tenant. It may be the only parameter set, to just refresh the basic info. The result's synced flag says whether Dify returned a record.
+    form: llm
+    default: false
+
 extra:
   python:
     source: tools/update_entity_profile.py

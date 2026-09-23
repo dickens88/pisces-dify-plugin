@@ -66,11 +66,19 @@ class UpdateEntityProfileTool(Tool):
                 return
             body["extra_fields"] = parsed
 
-        if not body:
+        force_update = bool(tool_parameters.get("force_update"))
+        entity_type = str(tool_parameters.get("entity_type") or "tenant").strip()
+        if force_update and entity_type != "tenant":
+            yield self.create_text_message("强制同步（force_update）仅支持租户（entity_type=tenant）。")
+            return
+
+        if not body and not force_update:
             yield self.create_text_message("未提供任何要更新的字段。")
             return
 
-        body["entity_type"] = str(tool_parameters.get("entity_type") or "tenant").strip()
+        body["entity_type"] = entity_type
+        if force_update:
+            body["force_update"] = True
 
         path = f"/entities/{quote(str(object_name), safe='')}"
         try:
@@ -91,5 +99,12 @@ class UpdateEntityProfileTool(Tool):
             return
 
         # The body is left unread: an API not yet upgraded still echoes the whole profile back.
-        yield self.create_text_message(f"已更新实体 {object_name} 的画像信息。")
-        yield self.create_json_message({"object_name": object_name, "updated": True})
+        if not force_update:
+            yield self.create_text_message(f"已更新实体 {object_name} 的画像信息。")
+            yield self.create_json_message({"object_name": object_name, "updated": True})
+            return
+
+        synced = bool((resp.json() or {}).get("synced"))
+        sync_note = "已从 Dify 同步基础信息" if synced else "Dify 未查到该租户的基础信息，未同步"
+        yield self.create_text_message(f"已更新实体 {object_name} 的画像信息（{sync_note}）。")
+        yield self.create_json_message({"object_name": object_name, "updated": True, "synced": synced})
