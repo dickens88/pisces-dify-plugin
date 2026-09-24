@@ -15,6 +15,7 @@ EXPORT_PAGE_SIZE = 100
 EXPORT_MAX_ROWS = 2000
 
 TRACE_STATUS_LABELS = {"running": "溯源中", "complete": "已完成", None: "未溯源"}
+AI_FEEDBACK_LABELS = {"up": "准确", "down": "不准确"}
 
 
 class QueryTraceResultTool(Tool):
@@ -58,6 +59,8 @@ class QueryTraceResultTool(Tool):
             "start_time": trace_result.get("start_time") or "",
             "refer_alert_id": trace_result.get("refer_alert_id") or "",
             "conclusion": trace_result.get("conclusion") or "",
+            "ai_conclusion": trace_result.get("ai_result_raw") or "",
+            "ai_feedback": trace_result.get("ai_feedback") or "",
             "update_user": trace_result.get("update_user") or "",
             "update_time": trace_result.get("update_time") or "",
         }
@@ -77,6 +80,10 @@ class QueryTraceResultTool(Tool):
                 lines.append(f"发起来源: {row['refer_alert_id']}")
             if row["trace_status"] == "complete":
                 lines.append(f"溯源结论: {row['conclusion'] or '-'}")
+                if row["ai_conclusion"]:
+                    lines.append(f"AI溯源结论: {row['ai_conclusion']}")
+                if row["ai_feedback"]:
+                    lines.append(f"AI结论评价: {AI_FEEDBACK_LABELS.get(row['ai_feedback'], row['ai_feedback'])}")
                 lines.append(f"提交人员: {row['update_user'] or '-'}")
                 if row["update_time"]:
                     lines.append(f"提交时间: {row['update_time']}")
