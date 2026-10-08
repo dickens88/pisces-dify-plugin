@@ -20,6 +20,9 @@
 | API 地址 (`base_url`) | 双鱼座 API 服务的根地址，**末尾不加斜杠** | `http://192.168.1.125:8080` |
 | 用户名 (`username`) | 双鱼座平台的登录用户名 | `admin` |
 | 密码 (`password`) | 双鱼座平台的登录密码 | `********` |
+| 代理地址 (`proxy_host`) | 选填。HTTP 代理，格式 `主机:端口`；填写后插件所有请求（含登录）都经由该代理，留空则直连 | `proxyhk.huawei.com:8080` |
+| 代理用户名 (`proxy_username`) | 选填。代理需要认证时填写 | `user` |
+| 代理密码 (`proxy_password`) | 选填。代理需要认证时填写 | `********` |
 
 插件自动通过 `POST /login` 获取 JWT Token，无需手动维护 Token。Token 在插件进程内按凭据缓存，
 到期前 60 秒才会重新登录；若服务端提前拒绝（返回 401），插件会自动重新登录并重试一次该请求。
@@ -146,6 +149,23 @@
 `type` 决定通知归入消息中心的哪个标签页；`approval` / `assign` / `notice` 三类始终推送、收件人无法屏蔽，
 其余类型受收件人订阅设置控制，因此能用具体类型就不要用 `notice`。通知的发件人固定为凭据账号，
 不可伪造。返回 `notification_id` 与实际投递范围（`audience`）。
+
+### 日志检索
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `spl` | string | ✅ | SPL 查询语句，开头不要加 `search`，如 `src_ip="10.0.0.1" \| stats count by dest_port` |
+| `index_pattern` | string | ✅ | 要检索的索引或通配模式，如 `logs-firewall-*` |
+| `time_range` | select | ❌ | 相对时间窗口：`15m` / `1h` / `4h` / `24h`（默认）/ `7d` / `30d`；设置了 `start_time` 时忽略 |
+| `start_time` | string | ❌ | 绝对时间起点，ISO 8601（如 `2026-07-01T00:00:00Z`） |
+| `end_time` | string | ❌ | 绝对时间终点，ISO 8601，默认当前时间 |
+| `size` | number | ❌ | 返回行数，默认 100，最大 500；`0` 只返回命中总数 |
+| `offset` | number | ❌ | 分页偏移，默认 0 |
+| `exact_total` | boolean | ❌ | 精确统计命中数，默认 `false`（事件检索计数到 10000 为止） |
+
+对应接口 `POST /hunting/searches`，`language` 固定为 `spl`，不支持 KQL 和自然语言。返回 `view`
+（`events` 原始事件 / `columns` 指定字段 / `aggregation` 聚合结果）、`columns`、`rows`、`total`、`took_ms`
+以及实际生效的时间窗口。SPL 语法错误时返回 400 及服务端的错误说明。
 
 ## 本地调试
 

@@ -39,6 +39,36 @@ credentials_for_provider:
     help:
       en_US: Your Pisces platform password. The plugin logs in for a JWT token and reuses it until it expires, so there is no token to maintain.
       zh_Hans: 双鱼座平台的登录密码。插件自动登录获取 Token 并在其有效期内复用，无需手动维护。
+  proxy_host:
+    type: text-input
+    required: false
+    label:
+      en_US: Proxy Host
+      zh_Hans: 代理地址
+    placeholder:
+      en_US: "proxyhk.huawei.com:8080"
+      zh_Hans: "proxyhk.huawei.com:8080"
+    help:
+      en_US: Optional HTTP proxy as host:port. When set, every request to the Pisces API goes through it. Leave empty to connect directly.
+      zh_Hans: 可选的 HTTP 代理，格式为 主机:端口。填写后所有访问双鱼座 API 的请求都经由该代理；留空则直连。
+  proxy_username:
+    type: text-input
+    required: false
+    label:
+      en_US: Proxy Username
+      zh_Hans: 代理用户名
+    help:
+      en_US: Optional. Only needed when the proxy requires authentication.
+      zh_Hans: 选填，仅在代理需要认证时填写。
+  proxy_password:
+    type: secret-input
+    required: false
+    label:
+      en_US: Proxy Password
+      zh_Hans: 代理密码
+    help:
+      en_US: Optional. Only needed when the proxy requires authentication.
+      zh_Hans: 选填，仅在代理需要认证时填写。
 tools:
   - tools/query_iocs.yaml
   - tools/add_ioc.yaml
@@ -56,6 +86,7 @@ tools:
   - tools/add_threat_intel.yaml
   - tools/hunt_task_callback.yaml
   - tools/send_notification.yaml
+  - tools/search_logs.yaml
 extra:
   python:
     source: provider/pisces.py

@@ -1,0 +1,140 @@
+identity:
+  name: search_logs
+  author: charles
+  label:
+    en_US: Search Logs
+    zh_Hans: 日志检索
+description:
+  human:
+    en_US: Search logs on the Pisces platform with an SPL query.
+    zh_Hans: 在双鱼座平台上用 SPL 语句检索日志。
+  llm: Run an SPL (Splunk-style pipeline) query against a Pisces log index pattern within a time window. Supports search terms, field filters and pipe commands such as stats, timechart, table/fields, sort and head. Returns columns, rows, the total hit count and the resolved time window. Only SPL is accepted; do not pass KQL or natural language, and do not prefix the query with the `search` keyword.
+parameters:
+  - name: spl
+    type: string
+    required: true
+    label:
+      en_US: SPL Query
+      zh_Hans: SPL 查询语句
+    human_description:
+      en_US: The SPL query to run, e.g. `src_ip="10.0.0.1" | stats count by dest_port`.
+      zh_Hans: 要执行的 SPL 语句，如 `src_ip="10.0.0.1" | stats count by dest_port`。
+    llm_description: 'The SPL query text, without a leading `search` keyword. Example: src_ip="10.0.0.1" action=deny | stats count by dest_port | sort -count | head 10'
+    form: llm
+
+  - name: index_pattern
+    type: string
+    required: true
+    label:
+      en_US: Index Pattern
+      zh_Hans: 索引模式
+    human_description:
+      en_US: The Elasticsearch index or wildcard pattern to search, e.g. `logs-firewall-*`.
+      zh_Hans: 要检索的 Elasticsearch 索引或通配模式，如 `logs-firewall-*`。
+    llm_description: The index or wildcard index pattern to search, e.g. "logs-firewall-*".
+    form: llm
+
+  - name: time_range
+    type: select
+    required: false
+    label:
+      en_US: Time Range
+      zh_Hans: 时间范围
+    human_description:
+      en_US: Relative window ending now (or at end_time). Ignored when start_time is set. Default last 24 hours.
+      zh_Hans: 截止到当前（或 end_time）的相对时间窗口；设置了 start_time 时忽略。默认最近 24 小时。
+    llm_description: "Relative time window ending now (or at end_time): 15m, 1h, 4h, 24h, 7d, 30d. Ignored when start_time is set. Default 24h."
+    form: llm
+    default: 24h
+    options:
+      - value: 15m
+        label:
+          en_US: Last 15 minutes
+          zh_Hans: 最近 15 分钟
+      - value: 1h
+        label:
+          en_US: Last 1 hour
+          zh_Hans: 最近 1 小时
+      - value: 4h
+        label:
+          en_US: Last 4 hours
+          zh_Hans: 最近 4 小时
+      - value: 24h
+        label:
+          en_US: Last 24 hours
+          zh_Hans: 最近 24 小时
+      - value: 7d
+        label:
+          en_US: Last 7 days
+          zh_Hans: 最近 7 天
+      - value: 30d
+        label:
+          en_US: Last 30 days
+          zh_Hans: 最近 30 天
+
+  - name: start_time
+    type: string
+    required: false
+    label:
+      en_US: Start Time
+      zh_Hans: 开始时间
+    human_description:
+      en_US: Absolute window start, ISO 8601 (e.g. 2026-07-01T00:00:00Z). Overrides time_range.
+      zh_Hans: 绝对时间窗口起点，ISO 8601（如 2026-07-01T00:00:00Z），优先于时间范围。
+    llm_description: Absolute window start in ISO 8601, e.g. 2026-07-01T00:00:00Z. Overrides time_range when set.
+    form: llm
+
+  - name: end_time
+    type: string
+    required: false
+    label:
+      en_US: End Time
+      zh_Hans: 结束时间
+    human_description:
+      en_US: Absolute window end, ISO 8601. Defaults to now.
+      zh_Hans: 绝对时间窗口终点，ISO 8601，默认当前时间。
+    llm_description: Absolute window end in ISO 8601. Defaults to now.
+    form: llm
+
+  - name: size
+    type: number
+    required: false
+    label:
+      en_US: Max Rows
+      zh_Hans: 返回条数
+    human_description:
+      en_US: Maximum rows to return (default 100, max 500). 0 returns the total only.
+      zh_Hans: 最多返回的行数（默认 100，最大 500）；0 表示只返回命中总数。
+    llm_description: Maximum rows to return, default 100, max 500. Use 0 to get only the total count.
+    form: llm
+    default: 100
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Number of rows to skip for pagination (default 0).
+      zh_Hans: 分页偏移量（默认 0）。
+    llm_description: Offset for pagination, default 0.
+    form: llm
+    default: 0
+
+  - name: exact_total
+    type: boolean
+    required: false
+    label:
+      en_US: Exact Total
+      zh_Hans: 精确计数
+    human_description:
+      en_US: Count every hit. Without it, event searches stop counting at 10000 and report a lower bound.
+      zh_Hans: 精确统计全部命中数；不开启时事件检索计数到 10000 为止，返回下限值。
+    llm_description: Set true to count every hit exactly; otherwise event-search totals stop at 10000.
+    form: form
+    default: false
+
+extra:
+  python:
+    source: tools/search_logs.py

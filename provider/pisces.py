@@ -3,6 +3,7 @@ import hashlib
 import json
 import threading
 import time
+from urllib.parse import quote
 
 import requests
 import urllib3
@@ -57,7 +58,26 @@ def error_message(resp: requests.Response) -> str:
     return body.get("error_message") or body.get("error") or resp.text
 
 
-def _login(base_url: str, username: str, password: str) -> str:
+def proxies_for(credentials: dict) -> dict | None:
+    """The requests `proxies` mapping for the optional proxy credentials, or None to connect
+    directly. proxy_host is host:port (a scheme is tolerated); the proxy login, if given,
+    is percent-encoded into the URL so characters like @ or : in the password survive."""
+    host = (credentials.get("proxy_host") or "").strip().rstrip("/")
+    if not host:
+        return None
+    scheme, sep, hostport = host.partition("://")
+    if not sep:
+        scheme, hostport = "http", host
+
+    user = (credentials.get("proxy_username") or "").strip()
+    password = credentials.get("proxy_password") or ""
+    auth = f"{quote(user, safe='')}:{quote(password, safe='')}@" if user else ""
+
+    url = f"{scheme}://{auth}{hostport}"
+    return {"http": url, "https": url}
+
+
+def _login(base_url: str, username: str, password: str, proxies: dict | None = None) -> str:
     """Log in to Pisces and return a fresh access_token. Raises PiscesError on failure."""
     try:
         resp = _http.post(
@@ -65,6 +85,7 @@ def _login(base_url: str, username: str, password: str) -> str:
             json={"username": username, "password": password},
             timeout=10,
             verify=False,
+            proxies=proxies,
         )
     except requests.exceptions.RequestException as e:
         raise PiscesError(str(e))
@@ -80,7 +101,13 @@ def _login(base_url: str, username: str, password: str) -> str:
     return token
 
 
-def get_token(base_url: str, username: str, password: str, force_refresh: bool = False) -> str:
+def get_token(
+    base_url: str,
+    username: str,
+    password: str,
+    force_refresh: bool = False,
+    proxies: dict | None = None,
+) -> str:
     """A valid access_token for these credentials, reusing the cached one when it still
     has life left. Pass force_refresh after the server has rejected a cached token."""
     key = _cache_key(base_url, username, password)
@@ -97,7 +124,7 @@ def get_token(base_url: str, username: str, password: str, force_refresh: bool =
         cached = _token_cache.get(key)
         if not force_refresh and usable(cached):
             return cached[0]
-        token = _login(base_url, username, password)
+        token = _login(base_url, username, password, proxies)
         _token_cache[key] = (token, _expires_at(token))
         return token
 
@@ -109,9 +136,11 @@ def pisces_request(method: str, path: str, credentials: dict, **kwargs) -> reque
     username = credentials.get("username", "")
     password = credentials.get("password", "")
     url = f"{base_url}{path}"
+    proxies = proxies_for(credentials)
 
     kwargs.setdefault("timeout", 30)
     kwargs.setdefault("verify", False)
+    kwargs.setdefault("proxies", proxies)
 
     def send(token: str) -> requests.Response:
         try:
@@ -121,10 +150,10 @@ def pisces_request(method: str, path: str, credentials: dict, **kwargs) -> reque
         except requests.exceptions.RequestException as e:
             raise PiscesError(str(e))
 
-    resp = send(get_token(base_url, username, password))
+    resp = send(get_token(base_url, username, password, proxies=proxies))
     if resp.status_code != 401:
         return resp
-    return send(get_token(base_url, username, password, force_refresh=True))
+    return send(get_token(base_url, username, password, force_refresh=True, proxies=proxies))
 
 
 class PiscesProvider(ToolProvider):
@@ -142,6 +171,7 @@ class PiscesProvider(ToolProvider):
 
         # A real login, which also primes the cache.
         try:
-            get_token(base_url, username, password, force_refresh=True)
+            get_token(base_url, username, password, force_refresh=True,
+                      proxies=proxies_for(credentials))
         except PiscesError as e:
             raise ToolProviderCredentialValidationError(str(e)) from e
