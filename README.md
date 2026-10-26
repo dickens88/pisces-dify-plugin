@@ -167,6 +167,19 @@
 （`events` 原始事件 / `columns` 指定字段 / `aggregation` 聚合结果）、`columns`、`rows`、`total`、`took_ms`
 以及实际生效的时间窗口。SPL 语法错误时返回 400 及服务端的错误说明。
 
+### 查询评论
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `event_id` | string | ✅ | 告警 ID 或事件 ID |
+| `workspace` | select | ❌ | 漏扫告警 / 漏扫事件填 `asm`，普通告警和事件留空 |
+| `limit` | number | ❌ | 每页原始笔记数，默认 200 |
+| `offset` | number | ❌ | 分页偏移，默认 0 |
+
+对应接口 `GET /comments/<event_id>`。云脑笔记约 3 个月后自动删除，接口会用双鱼座本地存档补齐，按时间倒序。
+返回 `data` 分为 `comments`（人工评论）、`intelligence`（情报）、`ai`（AI 研判）、`historic`（历史参考）四组，
+`total` 是全部原始笔记数（不只是人工评论）。分页按原始笔记计算，分组在分页之后，因此一页里人工评论可能很少。
+
 ## 本地调试
 
 ```bash

@@ -1,0 +1,70 @@
+identity:
+  name: query_comments
+  author: charles
+  label:
+    en_US: Query Comments
+    zh_Hans: 查询评论
+description:
+  human:
+    en_US: Query the comments of an alert or incident, including ones SecMaster has aged out after 3 months.
+    zh_Hans: 查询告警或事件的评论，包括云脑已按 3 个月过期删除、仅保存在双鱼座本地的评论。
+  llm: Query the notes of an alert or incident (vulnerability alerts and incidents included), newest first. SecMaster deletes notes after about 3 months, so older ones come from Pisces' local archive. Returns data grouped as comments (analyst comments), intelligence, ai (AI investigation verdicts) and historic (historical references), plus total - the count of all raw notes, not just analyst comments. Note content may contain HTML.
+parameters:
+  - name: event_id
+    type: string
+    required: true
+    label:
+      en_US: Alert / Incident ID
+      zh_Hans: 告警 / 事件 ID
+    human_description:
+      en_US: The ID of the alert or incident whose comments to query.
+      zh_Hans: 要查询评论的告警或事件 ID。
+    llm_description: The alert ID or incident ID (a UUID such as "1ba22db5-2273-4036-8540-acd5f1bb6d60").
+    form: llm
+
+  - name: workspace
+    type: select
+    required: false
+    label:
+      en_US: Workspace
+      zh_Hans: 工作空间
+    human_description:
+      en_US: Choose asm for vulnerability alerts and incidents. Leave empty for regular ones.
+      zh_Hans: 漏扫告警和漏扫事件选 asm，普通告警和事件留空。
+    llm_description: "Set to asm for vulnerability (vulscan) alerts and incidents; leave empty for regular alerts and incidents."
+    form: llm
+    options:
+      - value: asm
+        label:
+          en_US: asm
+          zh_Hans: asm
+
+  - name: limit
+    type: number
+    required: false
+    label:
+      en_US: Page Size
+      zh_Hans: 每页数量
+    human_description:
+      en_US: Maximum number of raw notes to return (default 200).
+      zh_Hans: 每页返回的最大原始笔记数（默认 200）。
+    llm_description: Number of raw notes per page, default 200. Pagination counts all notes before they are grouped, so a page may hold few analyst comments.
+    form: form
+    default: 200
+
+  - name: offset
+    type: number
+    required: false
+    label:
+      en_US: Offset
+      zh_Hans: 分页偏移
+    human_description:
+      en_US: Number of raw notes to skip for pagination (default 0).
+      zh_Hans: 分页偏移量（默认 0）。
+    llm_description: Offset for pagination over raw notes, default 0.
+    form: form
+    default: 0
+
+extra:
+  python:
+    source: tools/query_comments.py

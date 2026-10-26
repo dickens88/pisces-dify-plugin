@@ -87,6 +87,7 @@ tools:
   - tools/hunt_task_callback.yaml
   - tools/send_notification.yaml
   - tools/search_logs.yaml
+  - tools/query_comments.yaml
 extra:
   python:
     source: provider/pisces.py
