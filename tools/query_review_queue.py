@@ -24,9 +24,24 @@ class QueryReviewQueueTool(Tool):
             "limit": int(tool_parameters.get("limit") or 100),
             "offset": int(tool_parameters.get("offset") or 0),
         }
+        status = str(tool_parameters.get("status") or "all").strip()
         if pending_only:
             # status="pending" keeps only alerts that have not been reviewed yet.
-            payload["status"] = "pending"
+            status = "pending"
+        if status != "all":
+            payload["status"] = status
+        reason = str(tool_parameters.get("reason") or "all").strip()
+        if reason != "all":
+            payload["reason"] = reason
+
+        # Substring filters, ANDed together by the server.
+        search_keywords = []
+        for field in ("title", "creator", "alert_id", "tag"):
+            value = str(tool_parameters.get(field) or "").strip()
+            if value:
+                search_keywords.append({"field": field, "value": value})
+        if search_keywords:
+            payload["search_keywords"] = search_keywords
 
         try:
             resp = pisces_request(
@@ -45,7 +60,7 @@ class QueryReviewQueueTool(Tool):
         data = resp.json()
         total = data.get("total", 0)
         rows = data.get("data", [])
-        scope = "待复核（未复核）" if pending_only else "全部"
+        scope = {"pending": "待复核（未复核）", "pass": "已通过", "reject": "已驳回"}.get(status, "全部")
         yield self.create_text_message(
             f"近 {days} 天{scope}告警复核清单：共 {total} 条，本次返回 {len(rows)} 条。"
         )

@@ -8,7 +8,7 @@ description:
   human:
     en_US: Query the alert review queue (alerts flagged for shift-manager review) within a time range.
     zh_Hans: 查询指定时间范围内进入复核队列的告警清单（值班经理待复核 / 已复核），可选只看待复核。
-  llm: Query the alert review queue for the shift manager. Returns all review-queue fields including per-reason counts, per-status counts, a summary banner (current shift, pending totals) and the paged alert rows. Use pending_only to keep only alerts that have not been reviewed yet.
+  llm: Query the alert review queue for the shift manager. Returns all review-queue fields including per-reason counts, per-status counts, a summary banner (current shift, pending totals) and the paged alert rows; each row carries its custom tags array and review comment. Filter by status, reason and substrings of title, creator, alert_id or tag; all filters are ANDed. Use pending_only to keep only alerts that have not been reviewed yet. To change a record's tags or comment, call update_review with its alert_id.
 parameters:
   - name: days
     type: number
@@ -35,6 +35,126 @@ parameters:
     llm_description: If true, filter to only un-reviewed (pending) alerts. Default false returns all statuses.
     form: form
     default: false
+
+  - name: status
+    type: select
+    required: false
+    label:
+      en_US: Review Status
+      zh_Hans: 复核状态
+    human_description:
+      en_US: Filter by review result. Ignored when Pending Only is enabled.
+      zh_Hans: 按复核结果筛选。开启“只看待复核”时以其为准，本项忽略。
+    llm_description: "Filter by review result: all, pending (not reviewed yet), pass or reject. Default all. pending_only=true overrides this to pending."
+    form: llm
+    default: all
+    options:
+      - value: all
+        label:
+          en_US: All
+          zh_Hans: 全部
+      - value: pending
+        label:
+          en_US: Pending
+          zh_Hans: 待复核
+      - value: pass
+        label:
+          en_US: Passed
+          zh_Hans: 已通过
+      - value: reject
+        label:
+          en_US: Rejected
+          zh_Hans: 已驳回
+
+  - name: reason
+    type: select
+    required: false
+    label:
+      en_US: Review Reason
+      zh_Hans: 复核原因
+    human_description:
+      en_US: Filter by why the alert entered the review queue.
+      zh_Hans: 按告警进入复核队列的原因筛选。
+    llm_description: "Filter by queue reason: all, malicious_tenant (high-risk tenant alert converted to incident), disputed (marked questionable), blocked (suspended), fatal (unclosed Fatal alert), high_sla (High alert over the 60-minute processing SLA), ai_conflict (AI judged True_Positive but a human closed it). Default all."
+    form: llm
+    default: all
+    options:
+      - value: all
+        label:
+          en_US: All
+          zh_Hans: 全部
+      - value: malicious_tenant
+        label:
+          en_US: Malicious tenant
+          zh_Hans: 恶意租户
+      - value: disputed
+        label:
+          en_US: Disputed
+          zh_Hans: 存疑
+      - value: blocked
+        label:
+          en_US: Suspended
+          zh_Hans: 挂起
+      - value: fatal
+        label:
+          en_US: Fatal alert
+          zh_Hans: 致命告警
+      - value: high_sla
+        label:
+          en_US: High overdue
+          zh_Hans: 高危超时
+      - value: ai_conflict
+        label:
+          en_US: AI conflict
+          zh_Hans: 研判冲突
+
+  - name: title
+    type: string
+    required: false
+    label:
+      en_US: Title Contains
+      zh_Hans: 标题包含
+    human_description:
+      en_US: Keep only alerts whose title contains this text.
+      zh_Hans: 只返回标题包含该文本的告警（模糊匹配）。
+    llm_description: Case-insensitive substring filter on the alert title.
+    form: llm
+
+  - name: creator
+    type: string
+    required: false
+    label:
+      en_US: Creator Contains
+      zh_Hans: 创建者包含
+    human_description:
+      en_US: Keep only alerts whose model creator contains this text, e.g. an employee ID.
+      zh_Hans: 只返回创建者（告警模型作者）包含该文本的告警，例如工号。
+    llm_description: Case-insensitive substring filter on the alert's creator (the detection model author), e.g. an employee ID.
+    form: llm
+
+  - name: alert_id
+    type: string
+    required: false
+    label:
+      en_US: Alert ID
+      zh_Hans: 告警 ID
+    human_description:
+      en_US: Keep only alerts whose ID contains this text.
+      zh_Hans: 只返回告警 ID 包含该文本的记录。
+    llm_description: Substring filter on the alert ID. Pass a full ID to look up one specific review record.
+    form: llm
+
+  - name: tag
+    type: string
+    required: false
+    label:
+      en_US: Tag Contains
+      zh_Hans: 标签包含
+    human_description:
+      en_US: Keep only records with a custom tag containing this text.
+      zh_Hans: 只返回自定义标签中有任意一个包含该文本的记录。
+    llm_description: Substring filter on the record's custom tags; matches when any one tag contains this text (case-sensitive).
+    form: llm
 
   - name: limit
     type: number

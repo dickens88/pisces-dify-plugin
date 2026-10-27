@@ -1,0 +1,77 @@
+identity:
+  name: update_review
+  author: charles
+  label:
+    en_US: Update Alert Review Record
+    zh_Hans: 修改告警复核记录
+description:
+  human:
+    en_US: Edit the custom tags or the comment of one alert-review record. The review result (pass / reject) cannot be changed here — the shift manager submits it on the page.
+    zh_Hans: 修改指定告警复核记录的自定义标签或复核备注。复核结论（通过 / 驳回）不能通过此工具修改，仍由值班经理在页面上提交。
+  llm: Edit one alert-review record identified by alert_id (take it from query_review_queue rows). Can change the record's custom tags — replace the whole list, add some, or remove some — and its review comment. Tags show next to the creator badge in the review-queue title column. It cannot set or change the review result (pass / reject). Returns the updated record.
+parameters:
+  - name: alert_id
+    type: string
+    required: true
+    label:
+      en_US: Alert ID
+      zh_Hans: 告警 ID
+    human_description:
+      en_US: The alert ID of the review record to edit (the alert_id field of query_review_queue rows).
+      zh_Hans: 要修改的复核记录对应的告警 ID（即查询待复核告警清单返回行里的 alert_id）。
+    llm_description: The alert_id of the review-queue record to edit, exactly as returned by query_review_queue (not the row's id field).
+    form: llm
+
+  - name: tags
+    type: string
+    required: false
+    label:
+      en_US: Tags
+      zh_Hans: 标签
+    human_description:
+      en_US: 'Custom tags as a JSON array (e.g. ["False positive", "Whitelisted"]) or comma-separated text. How they apply depends on Tag Mode. To clear all tags, pass [] with Tag Mode = replace.'
+      zh_Hans: '自定义标签，可传 JSON 数组（如 ["误报", "已加白"]）或用逗号 / 顿号分隔的文本，按“标签修改方式”生效。要清空全部标签，传 [] 并选择“覆盖”。'
+    llm_description: 'Custom tags, as a JSON array of strings (e.g. ["误报", "已加白"]) or comma-separated text. Applied according to tag_mode. Pass [] with tag_mode=replace to clear all tags. Leave empty to keep tags unchanged.'
+    form: llm
+
+  - name: tag_mode
+    type: select
+    required: false
+    label:
+      en_US: Tag Mode
+      zh_Hans: 标签修改方式
+    human_description:
+      en_US: replace overwrites all existing tags; add appends the given tags; remove deletes the given tags. Defaults to replace.
+      zh_Hans: 覆盖：用传入标签替换全部已有标签；追加：在已有标签后追加；删除：删掉传入的标签。默认覆盖。
+    llm_description: 'How tags are applied: replace (overwrite the whole list), add (append, skipping ones already present, other tags kept) or remove (delete the given tags, others kept). Default replace. Prefer add / remove when other workflows may have set tags you should keep.'
+    form: llm
+    default: replace
+    options:
+      - value: replace
+        label:
+          en_US: Replace
+          zh_Hans: 覆盖
+      - value: add
+        label:
+          en_US: Add
+          zh_Hans: 追加
+      - value: remove
+        label:
+          en_US: Remove
+          zh_Hans: 删除
+
+  - name: comment
+    type: string
+    required: false
+    label:
+      en_US: Review Comment
+      zh_Hans: 复核备注
+    human_description:
+      en_US: New review comment; overwrites the existing one. Leave empty to keep it unchanged.
+      zh_Hans: 新的复核备注，会覆盖原有备注；不填则保持不变。
+    llm_description: New review comment text that overwrites the existing comment. Leave empty to keep it unchanged.
+    form: llm
+
+extra:
+  python:
+    source: tools/update_review.py

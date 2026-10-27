@@ -76,6 +76,7 @@ tools:
   - tools/query_deeptrace_status.yaml
   - tools/get_deeptrace_result.yaml
   - tools/query_review_queue.yaml
+  - tools/update_review.yaml
   - tools/query_shift_managers.yaml
   - tools/query_entity_profile.yaml
   - tools/update_entity_profile.yaml
