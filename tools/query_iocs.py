@@ -16,6 +16,7 @@ class QueryIocsTool(Tool):
         }
         if tool_parameters.get("object_type"):
             params["object_type"] = tool_parameters["object_type"]
+        params["entity_type"] = str(tool_parameters.get("entity_type") or "tenant").strip()
         if tool_parameters.get("status"):
             params["status"] = tool_parameters["status"]
 

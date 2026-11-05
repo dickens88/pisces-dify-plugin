@@ -8,7 +8,7 @@ description:
   human:
     en_US: Query the list of IOC (Indicators of Compromise) records for a given incident.
     zh_Hans: 查询指定安全事件（incident）下的 IOC（失陷指标）清单。
-  llm: Query IOC records for a security incident. Returns a paginated list of IOCs grouped by object_name and object_type, along with the total count.
+  llm: Query IOC records for a security incident. Returns a paginated list of IOCs grouped by object_name and object_type, along with the total count. By default only tenant entities are returned; set entity_type to ip or host for other entity types.
 parameters:
   - name: incident_id
     type: string
@@ -42,6 +42,32 @@ parameters:
         label:
           en_US: compromised_asset
           zh_Hans: compromised_asset
+
+  - name: entity_type
+    type: select
+    required: false
+    label:
+      en_US: Entity Type
+      zh_Hans: 实体类型
+    human_description:
+      en_US: Filter by entity type. Defaults to tenant.
+      zh_Hans: 按实体类型过滤（租户/IP/主机）。默认只查租户。
+    llm_description: "Filter IOCs by entity type: tenant, ip or host. Defaults to tenant."
+    form: form
+    default: tenant
+    options:
+      - value: tenant
+        label:
+          en_US: tenant
+          zh_Hans: 租户
+      - value: ip
+        label:
+          en_US: ip
+          zh_Hans: IP
+      - value: host
+        label:
+          en_US: host
+          zh_Hans: 主机
 
   - name: status
     type: select
