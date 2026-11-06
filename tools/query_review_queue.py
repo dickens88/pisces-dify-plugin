@@ -1,3 +1,4 @@
+import json
 from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -18,7 +19,6 @@ class QueryReviewQueueTool(Tool):
         pending_only = bool(tool_parameters.get("pending_only"))
 
         payload: dict[str, Any] = {
-            "action": "list",
             "time_from": time_from,
             "time_to": time_to,
             "limit": int(tool_parameters.get("limit") or 100),
@@ -41,11 +41,11 @@ class QueryReviewQueueTool(Tool):
             if value:
                 search_keywords.append({"field": field, "value": value})
         if search_keywords:
-            payload["search_keywords"] = search_keywords
+            payload["search_keywords"] = json.dumps(search_keywords, ensure_ascii=False)
 
         try:
             resp = pisces_request(
-                "POST", "/shift-manager/reviews", self.runtime.credentials, json=payload
+                "GET", "/shift-manager/reviews", self.runtime.credentials, params=payload
             )
         except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
