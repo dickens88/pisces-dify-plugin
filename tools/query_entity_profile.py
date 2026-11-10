@@ -10,13 +10,10 @@ from provider.pisces import PiscesError, error_message, pisces_request
 # How many candidates the keyword fallback pulls back before giving up on disambiguating.
 SEARCH_LIMIT = 20
 
-# Append-only arrays that grow without bound; returned only when include_details is set.
-DETAIL_FIELDS = ("alerts", "responses", "behaviors", "users", "related_tenant", "incidents", "comments")
 
-
-def _strip_details(doc: dict) -> None:
-    for field in DETAIL_FIELDS:
-        doc.pop(field, None)
+def _summary(doc: dict) -> dict:
+    """Default output without include_details: only _id and basic."""
+    return {"_id": doc.get("_id"), "basic": doc.get("basic") or {}}
 
 
 class QueryEntityProfileTool(Tool):
@@ -37,14 +34,13 @@ class QueryEntityProfileTool(Tool):
         params = None if self.include_details else {"scope": "basic"}
         data, err, status = self._get_json(f"/entities/{quote(str(object_name), safe='')}", params=params)
         if data is not None and not self.include_details:
-            _strip_details(data.get("data") or {})
+            data["data"] = _summary(data.get("data") or {})
         return data, err, status
 
     def _get_list(self, params: dict, what: str):
         data, err, status = self._get_json("/entities", params=params, what=what)
         if data is not None and not self.include_details:
-            for row in data.get("data") or []:
-                _strip_details(row)
+            data["data"] = [_summary(r) for r in data.get("data") or []]
         return data, err, status
 
     def _search_profiles(self, keyword: str):
