@@ -8,7 +8,7 @@ description:
   human:
     en_US: Query the entity profile (portrait) for a single entity by its object name, or list/search entity profiles when object_name is omitted. A tenant may also be looked up by its domain id.
     zh_Hans: 根据实体名称（object_name）查询该实体的画像信息；租户也可以直接用 domainid 查询。不填 object_name 时改为列表搜索，可按是否添加盯防等条件过滤。
-  llm: Query entity profiles. If object_name is given, returns that entity's _id and basic info only by default; set include_details to true to get the full profile (tenant tags, monitoring/trace state, related accounts/IPs, recent alerts, responses, etc.), which can be very large. Tenant profiles are keyed by the tenant name, but a domain id or a partial name also works — it is resolved through the same keyword search the console's search box uses, and the answer names the entity it resolved to. When the input matches several entities their names are listed instead, so retry with one of them. If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag, and attacker_only to narrow it to entities tagged as attackers; leaving a filter unset applies no constraint on that dimension. The two filters can be combined, e.g. monitored attackers.
+  llm: Query entity profiles. If object_name is given, returns the profile document for that single entity (basic info, tenant tags, monitoring/trace state, related accounts/IPs, plus alerts_total / behaviors_total / responses_count / incident_count). The append-only history arrays (alerts, responses, behaviors, users, related_tenant) are left out unless include_details is true; set it only when those records themselves are needed, as they can be very large. Tenant profiles are keyed by the tenant name, but a domain id or a partial name also works — it is resolved through the same keyword search the console's search box uses, and the answer names the entity it resolved to. When the input matches several entities their names are listed instead, so retry with one of them. If object_name is omitted, lists/searches profiles instead — use the monitoring filter to narrow the list to entities that do (or do not) have the monitoring flag, and attacker_only to narrow it to entities tagged as attackers; leaving a filter unset applies no constraint on that dimension. The two filters can be combined, e.g. monitored attackers.
 parameters:
   - name: object_name
     type: string
@@ -29,9 +29,9 @@ parameters:
       en_US: Include Details
       zh_Hans: 包含详情
     human_description:
-      en_US: Whether to return the full profile. Off by default, which returns only _id and basic info for each entity.
-      zh_Hans: 是否返回完整画像。默认不返回，每个实体只给出 _id 和 basic 基础信息。
-    llm_description: Default false — each entity carries only _id and basic. Set true only when you need other profile fields such as tenant_tags, monitoring/trace state, alerts or the responses (disposal) history; the full profile can be very large. Applies to both single-entity and list mode.
+      en_US: Whether to include the append-only history arrays (recent alerts, responses, behaviors, users, related tenants). Off by default; only their counts are returned.
+      zh_Hans: 是否返回会持续追加的历史明细（最近告警、响应处置记录、行为、用户、关联租户）。默认不返回，只给出数量。
+    llm_description: Default false — the alerts, responses, behaviors, users and related_tenant arrays are omitted and only their counts are kept. Set true only when you need those individual records (e.g. the disposal history or the latest alert ids). Applies to both single-entity and list mode.
     form: llm
     default: false
 
