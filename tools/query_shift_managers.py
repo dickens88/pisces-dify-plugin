@@ -33,10 +33,7 @@ class QueryShiftManagersTool(Tool):
         # ── current duty shifts for both roles (the shifts covering "now") ──
         if current_only:
             try:
-                resp = pisces_request(
-                    "GET", ROSTER_PATH, self.runtime.credentials,
-                    params={"action": "current_shift"},
-                )
+                resp = pisces_request("GET", f"{ROSTER_PATH}/current", self.runtime.credentials)
             except PiscesError as e:
                 yield self.create_text_message(f"请求失败: {e}")
                 return

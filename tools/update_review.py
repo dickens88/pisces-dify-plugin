@@ -2,13 +2,14 @@ import json
 import re
 from collections.abc import Generator
 from typing import Any
+from urllib.parse import quote
 
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
 from provider.pisces import PiscesError, error_message, pisces_request
 
-# tag_mode → request body key on PUT /shift-manager/reviews action=update.
+# tag_mode → request body key on PATCH /shift-manager/reviews/<alert_id>.
 _TAG_KEYS = {"replace": "tags", "add": "add_tags", "remove": "remove_tags"}
 
 
@@ -41,7 +42,7 @@ class UpdateReviewTool(Tool):
             yield self.create_text_message("缺少告警 ID（alert_id）。")
             return
 
-        body: dict[str, Any] = {"action": "update", "alert_id": alert_id}
+        body: dict[str, Any] = {}
 
         tags = tool_parameters.get("tags")
         if tags is not None and str(tags).strip():
@@ -64,12 +65,13 @@ class UpdateReviewTool(Tool):
         if comment is not None and str(comment).strip():
             body["comment"] = str(comment)
 
-        if len(body) == 2:
+        if not body:
             yield self.create_text_message("未提供任何要修改的字段（tags / comment）。")
             return
 
         try:
-            resp = pisces_request("PUT", "/shift-manager/reviews", self.runtime.credentials, json=body)
+            resp = pisces_request("PATCH", f"/shift-manager/reviews/{quote(alert_id, safe='')}",
+                                  self.runtime.credentials, json=body)
         except PiscesError as e:
             yield self.create_text_message(f"请求失败: {e}")
             return

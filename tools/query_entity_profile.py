@@ -48,7 +48,7 @@ class QueryEntityProfileTool(Tool):
         return data, err, status
 
     def _search_profiles(self, keyword: str):
-        """GET /entities?action=list&q=... — the keyword search behind the console's search box.
+        """GET /entities?q=... — the keyword search behind the console's search box.
         It matches basic.domainid and the user tags as well as the entity name itself."""
         return self._get_list({"q": keyword, "limit": SEARCH_LIMIT, "offset": 0}, what="实体画像列表")
 
