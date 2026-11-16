@@ -70,6 +70,19 @@ parameters:
     llm_description: Optional model name to override the server default for this run.
     form: form
 
+  - name: allow_memory_write
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Allow Memory Write
+      zh_Hans: 允许写入记忆
+    human_description:
+      en_US: When off (default), the run can still read memory but cannot save or delete notes, and no post-run reflection is generated, so unattended runs never add unreviewed notes to this account. Only takes effect when the agent has memory enabled.
+      zh_Hans: 关闭（默认）时，本次任务仍可读取记忆，但不能保存或删除笔记，结束后也不生成会话复盘，避免自动化任务把未经审核的记忆写进该账号。仅在智能体开启记忆时生效。
+    llm_description: Whether this run may write long-term memory. Leave false unless told otherwise.
+    form: form
+
 extra:
   python:
     source: tools/create_deeptrace_task.py

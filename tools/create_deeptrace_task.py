@@ -15,7 +15,11 @@ class CreateDeeptraceTaskTool(Tool):
             yield self.create_text_message("question 为必填参数")
             return
 
-        session_body: dict[str, Any] = {"title": title or question[:100], "source": "dify"}
+        # Off by default so unattended runs cannot add unreviewed notes to this account's memory.
+        allow_memory_write = bool(tool_parameters.get("allow_memory_write"))
+        session_body: dict[str, Any] = {
+            "title": title or question[:100], "source": "dify", "memory_write": allow_memory_write,
+        }
         # alert_id links the session to that alert as a shared investigation.
         alert_id = (tool_parameters.get("alert_id") or "").strip()
         if alert_id:
