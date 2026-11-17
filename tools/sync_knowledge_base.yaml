@@ -1,0 +1,76 @@
+identity:
+  name: sync_knowledge_base
+  author: charles
+  label:
+    en_US: Sync Knowledge Base
+    zh_Hans: 同步知识库
+description:
+  human:
+    en_US: One-way sync of Pisces team memory or ATT&CK entries into a Dify pipeline knowledge base whose datasource is Pisces. Run it on a schedule.
+    zh_Hans: 把双鱼座的公共记忆或 ATT&CK 录入单向同步到以双鱼座为数据源的 Dify 流水线知识库，配合定时触发使用。
+  llm: Sync a Pisces source into a Dify knowledge base. Indexes changed records and removes documents of deleted or superseded records.
+parameters:
+  - name: source
+    type: select
+    required: true
+    label:
+      en_US: Source
+      zh_Hans: 数据来源
+    human_description:
+      en_US: Which Pisces records to sync.
+      zh_Hans: 同步哪一类双鱼座记录。
+    form: form
+    options:
+      - value: deeptrace_memory
+        label:
+          en_US: DeepTrace shared memory
+          zh_Hans: DeepTrace 公共记忆
+      - value: attack
+        label:
+          en_US: ATT&CK entries
+          zh_Hans: ATT&CK 录入
+  - name: dataset_id
+    type: string
+    required: true
+    label:
+      en_US: Knowledge Base ID
+      zh_Hans: 知识库 ID
+    human_description:
+      en_US: ID of the pipeline knowledge base, from its URL.
+      zh_Hans: 流水线知识库的 ID，见知识库页面地址。
+    form: form
+  - name: dify_api_base
+    type: string
+    required: true
+    default: http://api:5001
+    label:
+      en_US: Dify API Base
+      zh_Hans: Dify API 地址
+    human_description:
+      en_US: Dify address as reached from the plugin daemon, without /v1.
+      zh_Hans: 插件运行环境访问 Dify 的地址，不带 /v1。
+    form: form
+  - name: dataset_api_key
+    type: secret-input
+    required: true
+    label:
+      en_US: Knowledge API Key
+      zh_Hans: 知识库 API 密钥
+    human_description:
+      en_US: A knowledge base API key (dataset-...).
+      zh_Hans: 知识库 API 密钥（dataset- 开头）。
+    form: form
+  - name: batch_size
+    type: number
+    required: false
+    default: 5
+    label:
+      en_US: Batch Size
+      zh_Hans: 每次提交数
+    human_description:
+      en_US: Records indexed per run; keep it under the embedding rate limit.
+      zh_Hans: 每次最多提交索引的记录数，不要超过嵌入模型的限流。
+    form: form
+extra:
+  python:
+    source: tools/sync_knowledge_base.py

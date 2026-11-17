@@ -18,3 +18,6 @@ build/
 .git/
 .gitignore
 .github/
+
+# Separate plugin package (a datasource cannot ship with tools)
+datasource/

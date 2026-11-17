@@ -1,0 +1,79 @@
+identity:
+  author: charles
+  name: pisces_datasource
+  label:
+    en_US: Pisces
+    zh_Hans: 双鱼座
+  description:
+    en_US: Pisces team memory and ATT&CK entries as knowledge documents
+    zh_Hans: 把双鱼座的公共记忆和 ATT&CK 录入作为知识库文档
+  icon: icon.svg
+provider_type: online_document
+credentials_schema:
+- name: base_url
+  type: text-input
+  required: true
+  label:
+    en_US: API Base URL
+    zh_Hans: API 地址
+  placeholder:
+    en_US: http://192.168.1.125:8080
+    zh_Hans: http://192.168.1.125:8080
+  help:
+    en_US: The base URL of your Pisces API server, without trailing slash.
+    zh_Hans: 双鱼座 API 服务地址，末尾不带斜杠。
+- name: username
+  type: text-input
+  required: true
+  label:
+    en_US: Username
+    zh_Hans: 用户名
+  help:
+    en_US: Your Pisces platform username.
+    zh_Hans: 双鱼座平台的登录用户名。
+- name: password
+  type: secret-input
+  required: true
+  label:
+    en_US: Password
+    zh_Hans: 密码
+  help:
+    en_US: Your Pisces platform password. The plugin logs in for a JWT token and reuses
+      it until it expires, so there is no token to maintain.
+    zh_Hans: 双鱼座平台的登录密码。插件自动登录获取 Token 并在其有效期内复用，无需手动维护。
+- name: proxy_host
+  type: text-input
+  required: false
+  label:
+    en_US: Proxy Host
+    zh_Hans: 代理地址
+  placeholder:
+    en_US: proxyhk.huawei.com:8080
+    zh_Hans: proxyhk.huawei.com:8080
+  help:
+    en_US: Optional HTTP proxy as host:port. When set, every request to the Pisces
+      API goes through it. Leave empty to connect directly.
+    zh_Hans: 可选的 HTTP 代理，格式为 主机:端口。填写后所有访问双鱼座 API 的请求都经由该代理；留空则直连。
+- name: proxy_username
+  type: text-input
+  required: false
+  label:
+    en_US: Proxy Username
+    zh_Hans: 代理用户名
+  help:
+    en_US: Optional. Only needed when the proxy requires authentication.
+    zh_Hans: 选填，仅在代理需要认证时填写。
+- name: proxy_password
+  type: secret-input
+  required: false
+  label:
+    en_US: Proxy Password
+    zh_Hans: 代理密码
+  help:
+    en_US: Optional. Only needed when the proxy requires authentication.
+    zh_Hans: 选填，仅在代理需要认证时填写。
+datasources:
+- datasources/pisces_knowledge.yaml
+extra:
+  python:
+    source: provider/pisces_datasource.py

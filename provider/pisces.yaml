@@ -89,6 +89,7 @@ tools:
   - tools/send_notification.yaml
   - tools/search_logs.yaml
   - tools/query_comments.yaml
+  - tools/sync_knowledge_base.yaml
 extra:
   python:
     source: provider/pisces.py

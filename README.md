@@ -180,6 +180,25 @@
 返回 `data` 分为 `comments`（人工评论）、`intelligence`（情报）、`ai`（AI 研判）、`historic`（历史参考）四组，
 `total` 是全部原始笔记数（不只是人工评论）。分页按原始笔记计算，分组在分页之后，因此一页里人工评论可能很少。
 
+### 同步知识库
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `source` | select | ✅ | `deeptrace_memory`（DeepTrace 公共记忆）或 `attack`（ATT&CK 录入） |
+| `dataset_id` | string | ✅ | 流水线知识库 ID |
+| `dify_api_base` | string | ✅ | 插件运行环境访问 Dify 的地址，不带 `/v1`，docker 部署默认 `http://api:5001` |
+| `dataset_api_key` | secret | ✅ | 知识库 API 密钥（`dataset-` 开头） |
+| `batch_size` | number | ❌ | 每次最多提交的记录数，默认 5，不要超过嵌入模型限流 |
+
+把双鱼座数据单向同步到知识库，只调用 Dify 接口，不访问双鱼座。要求知识库流水线以
+[双鱼座数据源插件](datasource/) 开头，并在 Dify 里为该数据源配置凭据。每篇文档带 `pisces_id`、`pisces_hash`
+元数据：内容变化时提交新文档，新文档索引完成后的下一次运行删除旧文档；双鱼座里不再发布的记录对应的文档会被删除，
+索引失败的文档下次运行重提。不带 `pisces_id` 的文档（手动上传的）不受影响。配合每 5 分钟的定时触发工作流使用。
+
+数据源插件（`datasource/`，Dify 不允许数据源和工具在同一个插件包里，需单独打包安装）：
+- DeepTrace 公共记忆：`scope=shared` 且已生效的笔记；
+- ATT&CK 录入：本地创建、已确认（`reviewed`）、未删除未废弃的对象，草稿不同步。
+
 ## 本地调试
 
 ```bash
@@ -196,4 +215,4 @@ python main.py
 dify plugin package ./pisces-dify-plugin
 ```
 
-生成 `pisces.difypkg` 后上传至 Dify。
+生成 `pisces.difypkg` 后上传至 Dify。数据源插件单独打包：`dify plugin package ./pisces-dify-plugin/datasource`。

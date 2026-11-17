@@ -1,0 +1,25 @@
+identity:
+  name: pisces_knowledge
+  author: charles
+  label:
+    en_US: Pisces knowledge
+    zh_Hans: 双鱼座知识
+description:
+  en_US: Confirmed shared DeepTrace memory and reviewed local ATT&CK entries, one page per record
+  zh_Hans: 已确认的 DeepTrace 公共记忆和已确认的本地 ATT&CK 录入，每条记录一个页面
+parameters: []
+output_schema:
+  type: object
+  properties:
+    workspace_id:
+      type: string
+      description: source, deeptrace_memory or attack
+    page_id:
+      type: string
+      description: Pisces record id
+    content:
+      type: string
+      description: record rendered as Markdown
+extra:
+  python:
+    source: datasources/pisces_knowledge.py
