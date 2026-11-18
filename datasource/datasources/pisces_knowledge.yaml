@@ -5,8 +5,8 @@ identity:
     en_US: Pisces knowledge
     zh_Hans: 双鱼座知识
 description:
-  en_US: Confirmed shared DeepTrace memory and reviewed local ATT&CK entries, one page per record
-  zh_Hans: 已确认的 DeepTrace 公共记忆和已确认的本地 ATT&CK 录入，每条记录一个页面
+  en_US: Confirmed shared DeepTrace memory notes, one page per note; confirmed local ATT&CK events, one page per event with its confirmed procedures
+  zh_Hans: 已确认的 DeepTrace 公共记忆每条一个页面；已确认的本地 ATT&CK 攻击事件每个事件一个页面，含其已确认的攻击过程
 parameters: []
 output_schema:
   type: object

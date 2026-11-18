@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.4
 type: plugin
 author: charles
 name: pisces_datasource
@@ -6,8 +6,8 @@ label:
   en_US: Pisces Datasource
   zh_Hans: 双鱼座数据源
 description:
-  en_US: Pisces team memory and ATT&CK entries as knowledge pipeline documents.
-  zh_Hans: 把双鱼座的公共记忆和 ATT&CK 录入作为知识流水线的数据源。
+  en_US: Pisces team memory and ATT&CK events as knowledge pipeline documents.
+  zh_Hans: 把双鱼座的公共记忆和 ATT&CK 攻击事件作为知识流水线的数据源。
 icon: icon.svg
 resource:
   memory: 268435456

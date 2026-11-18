@@ -6,8 +6,8 @@ identity:
     zh_Hans: 同步知识库
 description:
   human:
-    en_US: One-way sync of Pisces team memory or ATT&CK entries into a Dify pipeline knowledge base whose datasource is Pisces. Run it on a schedule.
-    zh_Hans: 把双鱼座的公共记忆或 ATT&CK 录入单向同步到以双鱼座为数据源的 Dify 流水线知识库，配合定时触发使用。
+    en_US: One-way sync of Pisces team memory or ATT&CK events into a Dify pipeline knowledge base whose datasource is Pisces. Run it on a schedule.
+    zh_Hans: 把双鱼座的公共记忆或 ATT&CK 攻击事件单向同步到以双鱼座为数据源的 Dify 流水线知识库，配合定时触发使用。
   llm: Sync a Pisces source into a Dify knowledge base. Indexes changed records and removes documents of deleted or superseded records.
 parameters:
   - name: source
@@ -27,8 +27,8 @@ parameters:
           zh_Hans: DeepTrace 公共记忆
       - value: attack
         label:
-          en_US: ATT&CK entries
-          zh_Hans: ATT&CK 录入
+          en_US: ATT&CK events
+          zh_Hans: ATT&CK 攻击事件
   - name: dataset_id
     type: string
     required: true

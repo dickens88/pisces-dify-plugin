@@ -5,8 +5,8 @@ identity:
     en_US: Pisces
     zh_Hans: 双鱼座
   description:
-    en_US: Pisces team memory and ATT&CK entries as knowledge documents
-    zh_Hans: 把双鱼座的公共记忆和 ATT&CK 录入作为知识库文档
+    en_US: Pisces team memory and ATT&CK events as knowledge documents
+    zh_Hans: 把双鱼座的公共记忆和 ATT&CK 攻击事件作为知识库文档
   icon: icon.svg
 provider_type: online_document
 credentials_schema:

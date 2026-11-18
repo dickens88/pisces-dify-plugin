@@ -184,7 +184,7 @@
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `source` | select | ✅ | `deeptrace_memory`（DeepTrace 公共记忆）或 `attack`（ATT&CK 录入） |
+| `source` | select | ✅ | `deeptrace_memory`（DeepTrace 公共记忆）或 `attack`（ATT&CK 攻击事件） |
 | `dataset_id` | string | ✅ | 流水线知识库 ID |
 | `dify_api_base` | string | ✅ | 插件运行环境访问 Dify 的地址，不带 `/v1`，docker 部署默认 `http://api:5001` |
 | `dataset_api_key` | secret | ✅ | 知识库 API 密钥（`dataset-` 开头） |
@@ -197,7 +197,7 @@
 
 数据源插件（`datasource/`，Dify 不允许数据源和工具在同一个插件包里，需单独打包安装）：
 - DeepTrace 公共记忆：`scope=shared` 且已生效的笔记；
-- ATT&CK 录入：本地创建、已确认（`reviewed`）、未删除未废弃的对象，草稿不同步。
+- ATT&CK 攻击事件：每个已确认（`reviewed`）、未删除的本地事件一篇文档，按发生时间列出其已确认的攻击过程；草稿事件、草稿攻击过程和场景等其他对象不同步。攻击过程只写 ATT&CK 映射、监控结果、检测缺口、涉及资产、标签和描述，编辑页“补充信息”里的字段（精确时间、攻击者、业务、标题、环境、起点、实施状态、结果摘要、检测模型）不进知识库；枚举按界面中文名输出。改动攻击过程会把事件打回草稿，重新确认前该事件不在知识库里。
 
 ## 本地调试
 
